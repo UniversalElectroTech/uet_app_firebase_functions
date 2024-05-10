@@ -2,10 +2,16 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { getEmployeesRoute } from "../routes";
 import { Employee } from "../model/employee";
+import { SimproApiService } from "../simproApiService";
 
 exports.getAllEmployees = onCall(async () => {
 	try {
-		const response: AxiosResponse<any> = await axios.get(getEmployeesRoute());
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
+		const response: AxiosResponse<any> = await simproApiService.get(
+			getEmployeesRoute()
+		);
 
 		// Parse response and create list of employees
 		const employeeDataList: any[] = response.data;

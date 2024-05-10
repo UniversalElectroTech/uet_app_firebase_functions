@@ -5,16 +5,20 @@ import {
 } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { postJobAttachmentsRoute } from "../routes";
+import { SimproApiService } from "../simproApiService";
 
 exports.postJobAttachments = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		const { simproJobId, payload } = request.data;
 
 		// Encode payload to JSON
 		const jsonPayload = JSON.stringify(payload);
 
 		// Make API post request
-		const response: AxiosResponse = await axios.post(
+		const response: AxiosResponse = await simproApiService.post(
 			postJobAttachmentsRoute(simproJobId),
 			jsonPayload
 		);

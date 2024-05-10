@@ -5,9 +5,13 @@ import {
 } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { patchJobStageRoute } from "../routes";
+import { SimproApiService } from "../simproApiService";
 
 exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		const { simproJobId, description, currentStage } = request.data;
 
 		// Determine the stage based on the 'currentStage' argument
@@ -20,7 +24,7 @@ exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
 		};
 
 		// Make API patch request
-		const response: AxiosResponse = await axios.patch(
+		const response: AxiosResponse = await simproApiService.patch(
 			patchJobStageRoute(simproJobId),
 			payload
 		);

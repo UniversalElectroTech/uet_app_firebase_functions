@@ -4,13 +4,17 @@ import {
 	CallableRequest,
 } from "firebase-functions/v2/https";
 import axios, { AxiosError } from "axios";
-import { getRcdCompleteJobsRoute } from "../simpro/routes";
+import { getRcdCompleteJobsRoute } from "../services/simpro_api/routes";
 import { Job } from "../models/job";
-import { getSitesRoute } from "../../../global/simpro/routes";
+import { getSitesRoute } from "../../../global/services/simpro_api/routes";
+import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.getCompleteJobs = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		// Extract and validate data from the client
 		const { page, returnCount, customerSimproId } = request.data;
 
@@ -20,7 +24,7 @@ exports.getCompleteJobs = onCall(async (request: CallableRequest) => {
 		}
 
 		// GET rcd progress jobs via SimproAPI
-		const jobResponse = await axios.get(
+		const jobResponse = await simproApiService.get(
 			getRcdCompleteJobsRoute(customerSimproId, returnCount, page)
 		);
 		const jobList: any[] = jobResponse.data;
@@ -42,7 +46,9 @@ exports.getCompleteJobs = onCall(async (request: CallableRequest) => {
 		const siteAddressIds: string = siteIds.join(",");
 
 		// GET job site information via SimproAPI
-		const siteAddressResponse = await axios.get(getSitesRoute(siteAddressIds));
+		const siteAddressResponse = await simproApiService.get(
+			getSitesRoute(siteAddressIds)
+		);
 		const siteAddressList: any[] = siteAddressResponse.data;
 
 		// HAVE REMOVED THIS FROM COMPLETE JOBS AS CURRENT UI/UX DOES NOT REQUIRE GEODATA IN COMPLETE JOBS SECTION

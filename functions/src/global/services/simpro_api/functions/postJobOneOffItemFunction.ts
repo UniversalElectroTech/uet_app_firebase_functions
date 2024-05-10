@@ -4,15 +4,18 @@ import {
 	CallableRequest,
 } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import {} from "../../../business_components/rcd_testing/simpro/routes";
 import { postOneOffItemRoute, getJobSectionsRoute } from "../routes";
+import { SimproApiService } from "../simproApiService";
 
 exports.postJobOneOffItem = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		const { simproJobId, description, cost } = request.data;
 
 		// Get section / costCenter ID
-		const getResponse: AxiosResponse = await axios.get(
+		const getResponse: AxiosResponse = await simproApiService.get(
 			getJobSectionsRoute(simproJobId)
 		);
 
@@ -33,7 +36,7 @@ exports.postJobOneOffItem = onCall(async (request: CallableRequest) => {
 		];
 
 		// Put one off item in Simpro job
-		const response: AxiosResponse = await axios.put(
+		const response: AxiosResponse = await simproApiService.put(
 			postOneOffItemRoute(simproJobId, sectionID, costCenterID),
 			payload
 		);

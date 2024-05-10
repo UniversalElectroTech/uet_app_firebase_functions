@@ -5,15 +5,19 @@ import {
 	onCall,
 } from "firebase-functions/v2/https";
 import { Customer } from "../models/customer";
-import { getRcdJobCustomersRoute } from "../simpro/routes";
+import { getRcdJobCustomersRoute } from "../services/simpro_api/routes";
+import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
 
 // Returns all customers with RCD testings jobs from the SimproAPI
 exports.getCustomers = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		const { page, returnCount } = request.data;
 
 		// GET customers with rcd jobs via SimproAPI
-		const customerResponse = await axios.get(
+		const customerResponse = await simproApiService.get(
 			getRcdJobCustomersRoute(returnCount, page)
 		);
 		const customerList: any[] = customerResponse.data;

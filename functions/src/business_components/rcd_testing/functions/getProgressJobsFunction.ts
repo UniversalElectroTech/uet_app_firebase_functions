@@ -4,7 +4,7 @@ import {
 	CallableRequest,
 } from "firebase-functions/v2/https";
 import axios, { AxiosError } from "axios";
-import { getRcdProgressJobsRoute } from "../simpro/routes";
+import { getRcdProgressJobsRoute } from "../services/simpro_api/routes";
 import { Job } from "../models/job";
 import { initializeApp } from "firebase-admin/app";
 import {
@@ -13,11 +13,15 @@ import {
 	QuerySnapshot,
 } from "firebase-admin/firestore";
 import { LatLng } from "../models/LatLng";
-import { getSitesRoute } from "../../../global/simpro/routes";
+import { getSitesRoute } from "../../../global/services/simpro_api/routes";
+import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
 
 // Returns all RCD testing progress jobs from the SimproAPI
 exports.getProgressJobs = onCall(async (request: CallableRequest) => {
 	try {
+		// Prepare SimproAPIService
+		const simproApiService = new SimproApiService();
+
 		// Extract and validate data from the client
 		const { page, returnCount, customerSimproId } = request.data;
 
@@ -49,7 +53,9 @@ exports.getProgressJobs = onCall(async (request: CallableRequest) => {
 		const siteAddressIds: string = siteIds.join(",");
 
 		// GET job site information via SimproAPI
-		const siteAddressResponse = await axios.get(getSitesRoute(siteAddressIds));
+		const siteAddressResponse = await simproApiService.get(
+			getSitesRoute(siteAddressIds)
+		);
 		const siteAddressList: any[] = siteAddressResponse.data;
 
 		// Get geocode data to be added to jobs

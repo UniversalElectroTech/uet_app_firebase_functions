@@ -1,6 +1,7 @@
 import { Site } from "./site";
 import { Booking } from "./booking";
 import { SplitJobDetails } from "./splitJobDetails";
+import { LatLng } from "./LatLng";
 
 export class Job {
 	public firebaseDocId: string | null;
@@ -17,6 +18,7 @@ export class Job {
 	public testGroup: string;
 	public isSplitJobParent: boolean;
 	public splitJobDetails: SplitJobDetails | null;
+	public geocode: LatLng | null;
 
 	constructor({
 		firebaseDocId,
@@ -33,6 +35,7 @@ export class Job {
 		testGroup = "",
 		isSplitJobParent = false,
 		splitJobDetails = null,
+		geocode = null,
 	}: {
 		firebaseDocId: string | null;
 		simproId: string;
@@ -48,6 +51,7 @@ export class Job {
 		testGroup?: string;
 		isSplitJobParent?: boolean;
 		splitJobDetails?: SplitJobDetails | null;
+		geocode?: LatLng | null;
 	}) {
 		this.firebaseDocId = firebaseDocId;
 		this.simproId = simproId;
@@ -63,6 +67,7 @@ export class Job {
 		this.testGroup = testGroup;
 		this.isSplitJobParent = isSplitJobParent;
 		this.splitJobDetails = splitJobDetails;
+		this.geocode = geocode;
 	}
 
 	static empty(): Job {
@@ -80,6 +85,58 @@ export class Job {
 		});
 	}
 
+	copyWith({
+		firebaseDocId,
+		simproId,
+		name,
+		customerId,
+		customer,
+		site,
+		jobComplete,
+		testCompletionDate,
+		notes,
+		bookings,
+		stage,
+		testGroup,
+		isSplitJobParent,
+		splitJobDetails,
+		geocode,
+	}: {
+		firebaseDocId?: string | null;
+		simproId?: string;
+		name?: string;
+		customerId?: string;
+		customer?: string;
+		site?: Site;
+		jobComplete?: boolean;
+		testCompletionDate?: Date | null;
+		notes?: any[];
+		bookings?: Booking[];
+		stage?: string;
+		testGroup?: string;
+		isSplitJobParent?: boolean;
+		splitJobDetails?: SplitJobDetails | null;
+		geocode?: LatLng | null;
+	}): Job {
+		return new Job({
+			firebaseDocId: firebaseDocId ?? this.firebaseDocId,
+			simproId: simproId ?? this.simproId,
+			name: name ?? this.name,
+			customerId: customerId ?? this.customerId,
+			customer: customer ?? this.customer,
+			site: site ?? this.site,
+			jobComplete: jobComplete ?? this.jobComplete,
+			testCompletionDate: testCompletionDate ?? this.testCompletionDate,
+			notes: notes ?? this.notes,
+			bookings: bookings ?? this.bookings,
+			stage: stage ?? this.stage,
+			testGroup: testGroup ?? this.testGroup,
+			isSplitJobParent: isSplitJobParent ?? this.isSplitJobParent,
+			splitJobDetails: splitJobDetails ?? this.splitJobDetails,
+			geocode: geocode ?? this.geocode,
+		});
+	}
+
 	static fromSimproMap({
 		jobData,
 		siteData,
@@ -87,7 +144,6 @@ export class Job {
 		jobData: { [key: string]: any };
 		siteData: { [key: string]: any };
 	}): Job {
-		// Extract testing group value from custom fields
 		let testGroup: string | null = null;
 		const customFields = jobData["CustomFields"] as any[];
 		if (customFields) {
@@ -119,6 +175,7 @@ export class Job {
 			splitJobDetails: jobData["splitJobDetails"]
 				? SplitJobDetails.fromFirebaseMap(jobData["splitJobDetails"])
 				: null,
+			geocode: null,
 		});
 	}
 }

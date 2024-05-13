@@ -1,16 +1,11 @@
-import {
-	onCall,
-	HttpsError,
-	CallableRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import axios, { AxiosError } from "axios";
 import { getRcdCompleteJobsRoute } from "../services/simpro_api/routes";
 import { Job } from "../models/job";
 import { getSitesRoute } from "../../../global/services/simpro_api/routes";
 import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
 
-// Returns all RCD testing complete jobs from the SimproAPI
-exports.getCompleteJobs = onCall(async (request: CallableRequest) => {
+export async function getCompleteJobs(request: CallableRequest): Promise<any> {
 	try {
 		// Prepare SimproAPIService
 		const simproApiService = new SimproApiService();
@@ -101,7 +96,7 @@ exports.getCompleteJobs = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}
 
 // HAVE REMOVED THIS FROM COMPLETE JOBS AS CURRENT UI/UX DOES NOT REQUIRE GEODATA IN COMPLETE JOBS SECTION
 

@@ -8,6 +8,14 @@ import { postJobAttachmentsRoute } from "../routes";
 import { SimproApiService } from "../simproApiService";
 
 exports.postJobAttachments = onCall(async (request: CallableRequest) => {
+	// Check that the user is authenticated.
+	if (!request.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new HttpsError(
+			"failed-precondition",
+			"The function must be " + "called while authenticated."
+		);
+	}
 	try {
 		// Prepare SimproAPIService
 		const simproApiService = new SimproApiService();

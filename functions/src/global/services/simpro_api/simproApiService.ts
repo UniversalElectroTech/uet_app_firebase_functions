@@ -1,12 +1,13 @@
+import * as admin from "firebase-admin";
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { BASE_URL } from "./config/config";
-import { defineSecret } from "firebase-functions/params";
 import { getToken } from "./routes";
-import { firestore } from "firebase-admin";
-
+import { SIMPRO_CLIENT_ID, SIMPRO_CLIENT_SECRET } from "../../..";
 export class SimproApiService {
 	private instance?: AxiosInstance;
 	private initialised: Promise<void>;
+	accessToken?: string;
+	private tokenExpiresAt?: number;
 
 	constructor() {
 		this.initialised = this.init();
@@ -14,12 +15,11 @@ export class SimproApiService {
 
 	private async init() {
 		try {
-			const accessToken = await this._accessTokenProvider();
-
+			await this.refreshAccessToken();
 			this.instance = axios.create({
 				baseURL: BASE_URL,
 				headers: {
-					Authorization: `Bearer ${accessToken}`,
+					Authorization: `Bearer ${this.accessToken}`,
 				},
 			});
 		} catch (error) {
@@ -30,31 +30,47 @@ export class SimproApiService {
 
 	async get(url: string, config?: AxiosRequestConfig) {
 		await this.initialised;
+		await this.ensureAccessTokenValid();
 		return this.instance!.get(url, config);
 	}
 
 	async post(url: string, data?: any, config?: AxiosRequestConfig) {
 		await this.initialised;
+		await this.ensureAccessTokenValid();
 		return this.instance!.post(url, data, config);
 	}
 
 	async put(url: string, data?: any, config?: AxiosRequestConfig) {
 		await this.initialised;
+		await this.ensureAccessTokenValid();
 		return this.instance!.put(url, data, config);
 	}
 
 	async patch(url: string, data?: any, config?: AxiosRequestConfig) {
 		await this.initialised;
+		await this.ensureAccessTokenValid();
 		return this.instance!.patch(url, data, config);
 	}
 
 	async delete(url: string, config?: AxiosRequestConfig) {
 		await this.initialised;
+		await this.ensureAccessTokenValid();
 		return this.instance!.delete(url, config);
 	}
 
-	private async _accessTokenProvider(): Promise<string> {
-		const tokenDocRef = firestore()
+	private async ensureAccessTokenValid() {
+		if (
+			!this.accessToken ||
+			!this.tokenExpiresAt ||
+			Date.now() >= this.tokenExpiresAt
+		) {
+			await this.refreshAccessToken();
+		}
+	}
+
+	private async refreshAccessToken() {
+		const tokenDocRef = admin
+			.firestore()
 			.collection("tokens")
 			.doc("simproAccessToken");
 
@@ -71,30 +87,33 @@ export class SimproApiService {
 					tokenData.expiresAt &&
 					tokenData.expiresAt > Date.now()
 				) {
-					return tokenData.accessToken;
+					this.accessToken = tokenData.accessToken;
+					this.tokenExpiresAt = tokenData.expiresAt;
+					return;
 				}
 			}
 
 			// If the token doesn't exist or has expired, fetch a new one
-			const newAccessToken = await this._fetchAccessToken();
-			return newAccessToken;
+			const newAccessToken = await this.fetchAccessToken();
+			this.accessToken = newAccessToken.accessToken;
+			this.tokenExpiresAt = newAccessToken.expiresAt;
 		} catch (error) {
-			console.error("Error retrieving access token from Firestore:", error);
-			throw new Error("Failed to retrieve access token from Firestore.");
+			console.error("Error refreshing access token:", error);
+			throw new Error("Failed to refresh access token.");
 		}
 	}
 
-	private async _fetchAccessToken(): Promise<string> {
+	private async fetchAccessToken(): Promise<{
+		accessToken: string;
+		expiresAt: number;
+	}> {
 		try {
-			const simproClientID = defineSecret("SIMPRO_CLIENT_ID");
-			const simproClientSecret = defineSecret("SIMPRO_CLIENT_SECRET");
-
 			const response: AxiosResponse = await axios.post(
 				getToken,
 				{
 					grant_type: "client_credentials",
-					client_id: simproClientID,
-					client_secret: simproClientSecret,
+					client_id: `${SIMPRO_CLIENT_ID.value()}`,
+					client_secret: `${SIMPRO_CLIENT_SECRET.value()}`,
 				},
 				{
 					headers: {
@@ -107,20 +126,21 @@ export class SimproApiService {
 			const expiresIn = response.data.expires_in;
 
 			// Store the access token and expiration time in Firestore
-			await this._storeAccessTokenInFirestore(accessToken, expiresIn);
+			await this.storeAccessTokenInFirestore(accessToken, expiresIn);
 
-			return accessToken;
+			return { accessToken, expiresAt: Date.now() + expiresIn * 1000 };
 		} catch (error) {
 			console.error("Error fetching access token:", error);
 			throw new Error("Failed to fetch access token.");
 		}
 	}
 
-	private async _storeAccessTokenInFirestore(
+	private async storeAccessTokenInFirestore(
 		accessToken: string,
 		expiresIn: number
-	): Promise<void> {
-		const tokenDocRef = firestore()
+	) {
+		const tokenDocRef = admin
+			.firestore()
 			.collection("tokens")
 			.doc("simproAccessToken");
 

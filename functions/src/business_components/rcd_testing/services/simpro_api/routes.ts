@@ -1,4 +1,4 @@
-import { BASE_URL } from "../../../global/simpro/config/config";
+import { BASE_URL } from "../../../../global/services/simpro_api/config/config";
 import { RCD_TEST_CUSTOM_FIELD_ID } from "./config";
 
 const DEFAULT_RETURN_COUNT = "150";

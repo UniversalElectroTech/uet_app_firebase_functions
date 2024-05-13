@@ -1,6 +1,6 @@
 {
-  "dependencies": {
-    "express": "^4.19.2",
-    "firebase-functions": "^5.0.1"
-  }
+	"dependencies": {
+		"express": "^4.19.2",
+		"firebase-functions": "^5.0.1"
+	}
 }

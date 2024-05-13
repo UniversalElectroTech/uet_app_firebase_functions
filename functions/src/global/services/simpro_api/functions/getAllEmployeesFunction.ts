@@ -1,10 +1,23 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+import {
+	onCall,
+	HttpsError,
+	CallableRequest,
+} from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { getEmployeesRoute } from "../routes";
 import { Employee } from "../model/employee";
 import { SimproApiService } from "../simproApiService";
 
-exports.getAllEmployees = onCall(async () => {
+exports.getAllEmployees = onCall(async (request: CallableRequest) => {
+	// Check that the user is authenticated.
+	if (!request.auth) {
+		// Throwing an HttpsError so that the client gets the error details.
+		throw new HttpsError(
+			"failed-precondition",
+			"The function must be " + "called while authenticated."
+		);
+	}
+
 	try {
 		// Prepare SimproAPIService
 		const simproApiService = new SimproApiService();

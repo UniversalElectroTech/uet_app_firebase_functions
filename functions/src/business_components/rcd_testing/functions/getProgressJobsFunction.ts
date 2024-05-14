@@ -1,8 +1,4 @@
-import {
-	onCall,
-	HttpsError,
-	CallableRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosError } from "axios";
 import { getRcdProgressJobsRoute } from "../services/simpro_api/routes";
 import { Job } from "../models/job";
@@ -14,23 +10,20 @@ import {
 } from "firebase-admin/firestore";
 import { LatLng } from "../models/LatLng";
 import { getSitesRoute } from "../../../global/services/simpro_api/routes";
-import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
+import { simproApiService } from "../../../global/services/simpro_api/simproApiService";
 
 // Returns all RCD testing progress jobs from the SimproAPI
-exports.getProgressJobs = onCall(async (request: CallableRequest) => {
+export async function getProgressJobs(request: any) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
 		throw new HttpsError(
 			"failed-precondition",
-			"The function must be " + "called while authenticated."
+			"The function must be called while authenticated."
 		);
 	}
 
 	try {
-		// Prepare SimproAPIService
-		const simproApiService = new SimproApiService();
-
 		// Extract and validate data from the client
 		const { page, returnCount, customerSimproId } = request.data;
 
@@ -40,7 +33,7 @@ exports.getProgressJobs = onCall(async (request: CallableRequest) => {
 		}
 
 		// GET rcd progress jobs via SimproAPI
-		const jobResponse = await axios.get(
+		const jobResponse = await simproApiService.get(
 			getRcdProgressJobsRoute(customerSimproId, returnCount, page)
 		);
 		const jobList: any[] = jobResponse.data;
@@ -115,7 +108,7 @@ exports.getProgressJobs = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}
 
 // Get all geoData saved in firestore database
 // MAY REQUIRE A NEW WAY OF DOING THIS AS GEOCODE LIST INCREASES

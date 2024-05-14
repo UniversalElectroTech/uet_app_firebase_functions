@@ -1,13 +1,10 @@
-import {
-	onCall,
-	HttpsError,
-	CallableRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { postJobAttachmentsRoute } from "../routes";
-import { SimproApiService } from "../simproApiService";
+import { simproApiService } from "../simproApiService";
 
-exports.postJobAttachments = onCall(async (request: CallableRequest) => {
+// adds attachments to job
+export async function postJobAttachments(request: any) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -17,9 +14,6 @@ exports.postJobAttachments = onCall(async (request: CallableRequest) => {
 		);
 	}
 	try {
-		// Prepare SimproAPIService
-		const simproApiService = new SimproApiService();
-
 		const { simproJobId, payload } = request.data;
 
 		// Encode payload to JSON
@@ -48,4 +42,4 @@ exports.postJobAttachments = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}

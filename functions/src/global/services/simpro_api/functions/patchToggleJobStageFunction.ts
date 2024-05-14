@@ -1,14 +1,10 @@
-import {
-	onCall,
-	HttpsError,
-	CallableRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { patchJobStageRoute } from "../routes";
-import { SimproApiService } from "../simproApiService";
+import { simproApiService } from "../simproApiService";
 
-exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
-	// Check that the user is authenticated.
+// Updates job stage
+export async function patchToggleJobStage(request: any) {
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
 		throw new HttpsError(
@@ -17,9 +13,6 @@ exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
 		);
 	}
 	try {
-		// Prepare SimproAPIService
-		const simproApiService = new SimproApiService();
-
 		const { simproJobId, description, currentStage } = request.data;
 
 		// Determine the stage based on the 'currentStage' argument
@@ -55,4 +48,4 @@ exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}

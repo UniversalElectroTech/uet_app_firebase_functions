@@ -1,14 +1,11 @@
-import {
-	onCall,
-	HttpsError,
-	CallableRequest,
-} from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { getEmployeesRoute } from "../routes";
 import { Employee } from "../model/employee";
-import { SimproApiService } from "../simproApiService";
+import { simproApiService } from "../simproApiService";
 
-exports.getAllEmployees = onCall(async (request: CallableRequest) => {
+// returns all employees in Simpro
+export async function getAllEmployees(request: any) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -19,9 +16,6 @@ exports.getAllEmployees = onCall(async (request: CallableRequest) => {
 	}
 
 	try {
-		// Prepare SimproAPIService
-		const simproApiService = new SimproApiService();
-
 		const response: AxiosResponse<any> = await simproApiService.get(
 			getEmployeesRoute()
 		);
@@ -49,4 +43,4 @@ exports.getAllEmployees = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}

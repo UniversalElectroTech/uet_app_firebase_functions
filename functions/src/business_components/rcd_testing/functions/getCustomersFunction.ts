@@ -1,15 +1,11 @@
 import axios, { AxiosError } from "axios";
-import {
-	CallableRequest,
-	HttpsError,
-	onCall,
-} from "firebase-functions/v2/https";
+import { HttpsError } from "firebase-functions/v2/https";
 import { Customer } from "../models/customer";
 import { getRcdJobCustomersRoute } from "../services/simpro_api/routes";
-import { SimproApiService } from "../../../global/services/simpro_api/simproApiService";
+import { simproApiService } from "../../../global/services/simpro_api/simproApiService";
 
 // Returns all customers with RCD testings jobs from the SimproAPI
-exports.getCustomers = onCall(async (request: CallableRequest) => {
+export async function getCustomers(request: any) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -20,9 +16,6 @@ exports.getCustomers = onCall(async (request: CallableRequest) => {
 	}
 
 	try {
-		// Prepare SimproAPIService
-		const simproApiService = new SimproApiService();
-
 		const { page, returnCount } = request.data;
 
 		// GET customers with rcd jobs via SimproAPI
@@ -72,4 +65,4 @@ exports.getCustomers = onCall(async (request: CallableRequest) => {
 			throw new HttpsError("internal", "An unknown error occurred");
 		}
 	}
-});
+}

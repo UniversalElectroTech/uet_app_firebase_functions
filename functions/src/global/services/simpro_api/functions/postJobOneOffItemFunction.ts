@@ -1,6 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { postOneOffItemRoute, getJobSectionsRoute } from "../routes";
+import { postOneOffItemRoute, getJobSectionsRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // adds one of item to job

@@ -1,7 +1,11 @@
-import { BASE_URL } from "./config/config";
+import { BASE_URL, DEFAULT_PAGE, DEFAULT_RETURN_COUNT } from "./config";
 
 // GET ================================================================
 export const getToken: string = "https://uet.simprosuite.com/oauth2/token";
+
+export function getJobDetailsRoute(simproJobId: string) {
+	return `${BASE_URL}/jobs/${simproJobId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
+}
 
 export function getEmployeesRoute(): string {
 	return `${BASE_URL}/employees/?columns=ID,Name,PrimaryContact`;
@@ -11,8 +15,12 @@ export function getJobSectionsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}?display=all&columns=Sections`;
 }
 
-export function getSitesRoute(siteAddressIds: string): string {
-	return `${BASE_URL}/sites/?columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})`;
+export function getSitesRoute(
+	siteAddressIds: string,
+	returnCount: string = DEFAULT_RETURN_COUNT,
+	page: string = DEFAULT_PAGE
+): string {
+	return `${BASE_URL}/sites/?columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})?pageSize=${returnCount}&page=${page}`;
 }
 // ====================================================================
 

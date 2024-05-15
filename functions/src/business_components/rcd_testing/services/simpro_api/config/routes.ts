@@ -1,8 +1,9 @@
-import { BASE_URL } from "../../../../global/services/simpro_api/config/config";
+import {
+	BASE_URL,
+	DEFAULT_PAGE,
+	DEFAULT_RETURN_COUNT,
+} from "../../../../../global/services/simpro_api/config/config";
 import { RCD_TEST_CUSTOM_FIELD_ID } from "./config";
-
-const DEFAULT_RETURN_COUNT = "150";
-const DEFAULT_PAGE = "1";
 
 // GET ================================================================
 export function getRcdProgressJobsRoute(

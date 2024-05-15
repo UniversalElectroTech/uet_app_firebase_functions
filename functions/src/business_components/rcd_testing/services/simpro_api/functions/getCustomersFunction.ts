@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
 import { HttpsError } from "firebase-functions/v2/https";
-import { Customer } from "../models/customer";
-import { getRcdJobCustomersRoute } from "../services/simpro_api/routes";
-import { simproApiService } from "../../../global/services/simpro_api/simproApiService";
+import { Customer } from "../../../models/customer";
+import { getRcdJobCustomersRoute } from "../config/routes";
+import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 
 // Returns all customers with RCD testings jobs from the SimproAPI
 export async function getCustomers(request: any) {

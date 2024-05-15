@@ -1,7 +1,7 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { getEmployeesRoute } from "../routes";
-import { Employee } from "../model/employee";
+import { getEmployeesRoute } from "../config/routes";
+import { Employee } from "../../../models/employee";
 import { simproApiService } from "../simproApiService";
 
 // returns all employees in Simpro

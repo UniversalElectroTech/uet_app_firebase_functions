@@ -1,6 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { patchJobStageRoute } from "../routes";
+import { patchJobStageRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // Updates job stage

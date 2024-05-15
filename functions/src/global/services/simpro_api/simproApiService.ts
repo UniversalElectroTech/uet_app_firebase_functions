@@ -1,8 +1,8 @@
 import * as admin from "firebase-admin";
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { firebaseFunctionsConfig } from "../../firebaseFunctions/appConfig";
+import { firebaseFunctionsService } from "../../firebaseFunctions/services/firebaseFunctions";
 import { BASE_URL } from "./config/config";
-import { getToken } from "./routes";
+import { getToken } from "./config/routes";
 
 class SimproApiService {
 	private static instance: SimproApiService;
@@ -136,8 +136,8 @@ class SimproApiService {
 				getToken,
 				{
 					grant_type: "client_credentials",
-					client_id: firebaseFunctionsConfig.simproClientId.value(),
-					client_secret: firebaseFunctionsConfig.simproClientSecret.value(),
+					client_id: firebaseFunctionsService.simproClientId.value(),
+					client_secret: firebaseFunctionsService.simproClientSecret.value(),
 				},
 				{
 					headers: {

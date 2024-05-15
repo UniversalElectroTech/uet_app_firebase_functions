@@ -1,6 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { postJobAttachmentsRoute } from "../routes";
+import { postJobAttachmentsRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // adds attachments to job

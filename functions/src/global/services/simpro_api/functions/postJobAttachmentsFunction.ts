@@ -14,15 +14,23 @@ export async function postJobAttachments(request: any) {
 		);
 	}
 	try {
-		const { simproJobId, payload } = request.data;
+		const {
+			simproJobId,
+			payload,
+		}: { simproJobId: string; payload: Map<string, any> } = request.data;
 
-		// Encode payload to JSON
-		const jsonPayload = JSON.stringify(payload);
+		// Check if all required parameters have been received
+		if (!simproJobId || !payload) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
 
 		// Make API post request
 		const response: AxiosResponse = await simproApiService.post(
 			postJobAttachmentsRoute(simproJobId),
-			jsonPayload
+			payload
 		);
 
 		return response.data;
@@ -38,8 +46,7 @@ export async function postJobAttachments(request: any) {
 				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
 		} else {
-			// Handle other types of errors
-			throw new HttpsError("internal", "An unknown error occurred");
+			throw error;
 		}
 	}
 }

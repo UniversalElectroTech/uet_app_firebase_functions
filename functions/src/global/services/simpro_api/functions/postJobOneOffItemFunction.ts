@@ -14,7 +14,20 @@ export async function postJobOneOffItem(request: any) {
 		);
 	}
 	try {
-		const { simproJobId, description, cost } = request.data;
+		const {
+			simproJobId,
+			description,
+			cost,
+		}: { simproJobId: string; description: string; cost: number } =
+			request.data;
+
+		// Check if all required parameters have been received
+		if (!simproJobId || !description || !cost) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
 
 		// Get section / costCenter ID
 		const getResponse: AxiosResponse = await simproApiService.get(
@@ -57,8 +70,7 @@ export async function postJobOneOffItem(request: any) {
 				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
 		} else {
-			// Handle other types of errors
-			throw new HttpsError("internal", "An unknown error occurred");
+			throw error;
 		}
 	}
 }

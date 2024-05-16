@@ -13,7 +13,20 @@ export async function patchToggleJobStage(request: any) {
 		);
 	}
 	try {
-		const { simproJobId, description, currentStage } = request.data;
+		const {
+			simproJobId,
+			description,
+			currentStage,
+		}: { simproJobId: string; description: string; currentStage: string } =
+			request.data;
+
+		// Check if all required parameters have been received
+		if (!simproJobId || !description || !currentStage) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
 
 		// Determine the stage based on the 'currentStage' argument
 		const stage: string = currentStage === "Progress" ? "Complete" : "Progress";
@@ -44,8 +57,7 @@ export async function patchToggleJobStage(request: any) {
 				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
 		} else {
-			// Handle other types of errors
-			throw new HttpsError("internal", "An unknown error occurred");
+			throw error;
 		}
 	}
 }

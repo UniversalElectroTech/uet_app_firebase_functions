@@ -1,11 +1,10 @@
 import axios, { AxiosError } from "axios";
 import { HttpsError } from "firebase-functions/v2/https";
-import { Customer } from "../../../models/customer";
 import { getRcdJobCustomersRoute } from "../config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 
 // Returns all customers with RCD testings jobs from the SimproAPI
-export async function getCustomers(request: any) {
+export async function getAllCustomers(request: any) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -16,7 +15,21 @@ export async function getCustomers(request: any) {
 	}
 
 	try {
-		const { page, returnCount } = request.data;
+		const { page, returnCount }: { page: number; returnCount: number } =
+			request.data;
+
+		// Check if all required parameters have been received
+		if (
+			page === undefined ||
+			page === null ||
+			returnCount === undefined ||
+			returnCount === null
+		) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
 
 		// GET customers with rcd jobs via SimproAPI
 		const customerResponse = await simproApiService.get(
@@ -34,20 +47,9 @@ export async function getCustomers(request: any) {
 			return returnMap;
 		}
 
-		const uniqueCustomers: Map<number, Customer> = new Map();
-		for (const jobJson of customerList) {
-			const customerData = jobJson["Customer"];
-			const customerId: number = customerData["ID"];
-
-			if (!uniqueCustomers.has(customerId)) {
-				const customer: Customer = Customer.fromMap(customerData);
-				uniqueCustomers.set(customerId, customer);
-			}
-		}
-
 		// Return a map with customer data, result total and result count
 		const returnMap = {
-			customers: uniqueCustomers,
+			customers: customerList,
 			resultTotal: customerResponse.headers["result-total"],
 			resultCount: customerResponse.headers["result-count"],
 		};
@@ -62,7 +64,7 @@ export async function getCustomers(request: any) {
 				"An error occurred";
 			throw new HttpsError("internal", errorMessage);
 		} else {
-			throw new HttpsError("internal", "An unknown error occurred");
+			throw error;
 		}
 	}
 }

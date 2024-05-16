@@ -18,7 +18,15 @@ export async function getJobDetails(request: any) {
 	}
 
 	try {
-		const { simproJobId } = request.data;
+		const { simproJobId }: { simproJobId: string } = request.data;
+
+		// Check if all required parameters have been received
+		if (!simproJobId) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
 
 		// GET job details via SimproAPI
 		const jobResponse = await simproApiService.get(
@@ -53,8 +61,7 @@ export async function getJobDetails(request: any) {
 				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
 		} else {
-			// Handle other types of errors
-			throw new HttpsError("internal", "An unknown error occurred");
+			throw error;
 		}
 	}
 }

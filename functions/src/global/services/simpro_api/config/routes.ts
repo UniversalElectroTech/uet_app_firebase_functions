@@ -17,10 +17,10 @@ export function getJobSectionsRoute(simproJobId: string): string {
 
 export function getSitesRoute(
 	siteAddressIds: string,
-	returnCount: string = DEFAULT_RETURN_COUNT,
-	page: string = DEFAULT_PAGE
+	returnCount: number = DEFAULT_RETURN_COUNT,
+	page: number = DEFAULT_PAGE
 ): string {
-	return `${BASE_URL}/sites/?columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})?pageSize=${returnCount}&page=${page}`;
+	return `${BASE_URL}/sites/?columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})`;
 }
 // ====================================================================
 

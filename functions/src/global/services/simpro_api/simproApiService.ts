@@ -73,7 +73,7 @@ class SimproApiService {
 			return await requestFn();
 		} catch (error) {
 			if (this.isUnauthorizedError(error)) {
-				await this.refreshAccessToken();
+				await this.fetchAccessToken();
 				return await requestFn();
 			} else {
 				throw error;
@@ -121,6 +121,13 @@ class SimproApiService {
 			const newAccessToken = await this.fetchAccessToken();
 			this.accessToken = newAccessToken.accessToken;
 			this.tokenExpiresAt = newAccessToken.expiresAt;
+
+			this.instance = axios.create({
+				baseURL: BASE_URL,
+				headers: {
+					Authorization: `Bearer ${this.accessToken}`,
+				},
+			});
 		} catch (error) {
 			console.error("Error refreshing access token:", error);
 			throw new Error("Failed to refresh access token.");
@@ -132,19 +139,11 @@ class SimproApiService {
 		expiresAt: number;
 	}> {
 		try {
-			const response: AxiosResponse = await axios.post(
-				getToken,
-				{
-					grant_type: "client_credentials",
-					client_id: firebaseFunctionsService.simproClientId.value(),
-					client_secret: firebaseFunctionsService.simproClientSecret.value(),
-				},
-				{
-					headers: {
-						NoAuthToken: true,
-					},
-				}
-			);
+			const response: AxiosResponse = await axios.post(getToken, {
+				grant_type: "client_credentials",
+				client_id: firebaseFunctionsService.simproClientId.value(),
+				client_secret: firebaseFunctionsService.simproClientSecret.value(),
+			});
 
 			const accessToken = response.data.access_token;
 			const expiresIn = response.data.expires_in;

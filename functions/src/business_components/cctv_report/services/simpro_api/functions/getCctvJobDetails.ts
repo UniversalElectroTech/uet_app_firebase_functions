@@ -33,7 +33,7 @@ export async function getCctvJobDetails(request: any) {
 		// Assuming CctvJob has a fromMap method similar to your Dart code
 		const cctvJob = CctvJob.fromMap(jobResponse.data);
 
-		return cctvJob.name;
+		return cctvJob.toMap();
 	} catch (error: any) {
 		if (axios.isAxiosError(error)) {
 			const axiosError = error as AxiosError<{ errorMessage?: string }>;

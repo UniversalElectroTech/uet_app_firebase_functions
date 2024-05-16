@@ -5,21 +5,33 @@ import { postJobAttachments } from "./postJobAttachmentsFunction";
 import { postJobOneOffItem } from "./postJobOneOffItemFunction";
 
 // Returns all RCD testing complete jobs from the SimproAPI
-exports.getAllEmployees = onCall(async (request: CallableRequest) => {
-	await getAllEmployees(request);
-});
+exports.getAllEmployees = onCall(
+	{ timeoutSeconds: 1, maxInstances: 1 },
+	async (request: CallableRequest) => {
+		return await getAllEmployees(request);
+	}
+);
 
 // Returns all RCD testing complete jobs from the SimproAPI
-exports.patchToggleJobStage = onCall(async (request: CallableRequest) => {
-	await patchToggleJobStage(request);
-});
+exports.patchToggleJobStage = onCall(
+	{ timeoutSeconds: 1, maxInstances: 1 },
+	async (request: CallableRequest) => {
+		return await patchToggleJobStage(request);
+	}
+);
 
 // Returns all RCD testing complete jobs from the SimproAPI
-exports.postJobAttachmens = onCall(async (request: CallableRequest) => {
-	await postJobAttachments(request);
-});
+exports.postJobAttachments = onCall(
+	{ timeoutSeconds: 1, maxInstances: 10 },
+	async (request: CallableRequest) => {
+		return await postJobAttachments(request);
+	}
+);
 
 // Returns all RCD testing complete jobs from the SimproAPI
-exports.postJobOneOffItem = onCall(async (request: CallableRequest) => {
-	await postJobOneOffItem(request);
-});
+exports.postJobOneOffItem = onCall(
+	{ timeoutSeconds: 1, maxInstances: 1 },
+	async (request: CallableRequest) => {
+		return await postJobOneOffItem(request);
+	}
+);

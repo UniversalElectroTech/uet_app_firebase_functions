@@ -50,6 +50,7 @@ export async function addEmployeeToApp(request: CallableRequest) {
 					mobile: mobile,
 					simproId: simproId,
 					firebaseDocId: userRecord.uid,
+					securityGroup: null,
 				};
 			});
 	} catch (error: any) {

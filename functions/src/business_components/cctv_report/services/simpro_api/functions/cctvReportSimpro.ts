@@ -3,7 +3,7 @@ import { getCctvJobDetails } from "./getCctvJobDetails";
 
 // Returns cctv job details from the SimproAPI
 exports.getCctvJobDetails = onCall(
-	{ timeoutSeconds: 1, maxInstances: 1 },
+	{ timeoutSeconds: 2, maxInstances: 1 },
 	async (request: CallableRequest) => {
 		return await getCctvJobDetails(request);
 	}

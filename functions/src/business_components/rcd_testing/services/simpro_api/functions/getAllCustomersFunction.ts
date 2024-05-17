@@ -1,10 +1,10 @@
 import axios, { AxiosError } from "axios";
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getRcdJobCustomersRoute } from "../config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 
 // Returns all customers with RCD testings jobs from the SimproAPI
-export async function getAllCustomers(request: any) {
+export async function getAllCustomers(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.

@@ -1,10 +1,10 @@
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { postOneOffItemRoute, getJobSectionsRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // adds one of item to job
-export async function postJobOneOffItem(request: any) {
+export async function postJobOneOffItem(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.

@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { Job } from "../../../models/job";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import {
@@ -7,7 +7,7 @@ import {
 	getSitesRoute,
 } from "../../../../../global/services/simpro_api/config/routes";
 
-export async function getJobDetails(request: any) {
+export async function getJobDetails(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.

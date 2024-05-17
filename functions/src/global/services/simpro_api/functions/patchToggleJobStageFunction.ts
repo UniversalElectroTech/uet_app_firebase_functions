@@ -1,10 +1,10 @@
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { patchJobStageRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // Updates job stage
-export async function patchToggleJobStage(request: any) {
+export async function patchToggleJobStage(request: CallableRequest) {
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
 		throw new HttpsError(

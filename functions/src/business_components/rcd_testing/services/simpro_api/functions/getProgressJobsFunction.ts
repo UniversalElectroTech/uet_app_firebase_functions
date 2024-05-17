@@ -1,11 +1,11 @@
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosError } from "axios";
 import { getRcdProgressJobsRoute } from "../config/routes";
 import { getSitesRoute } from "../../../../../global/services/simpro_api/config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 
 // Returns all RCD testing progress jobs from the SimproAPI
-export async function getProgressJobs(request: any) {
+export async function getProgressJobs(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.

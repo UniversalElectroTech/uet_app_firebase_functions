@@ -1,10 +1,10 @@
-import { HttpsError } from "firebase-functions/v2/https";
+import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { getEmployeesRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
 // returns all employees in Simpro
-export async function getAllEmployees(request: any) {
+export async function getAllEmployees(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.

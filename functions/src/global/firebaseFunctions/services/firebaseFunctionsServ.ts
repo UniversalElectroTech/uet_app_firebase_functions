@@ -5,8 +5,6 @@ import { setGlobalOptions } from "firebase-functions/v2/options";
 
 class FirebaseFunctionsService {
 	private static instance: FirebaseFunctionsService;
-	// Password for App initial Creation
-	private _appInitialPassword: SecretParam;
 	// Simpro secrets
 	private _simproKey: SecretParam;
 	// Google Maps API secrets
@@ -17,9 +15,6 @@ class FirebaseFunctionsService {
 	private constructor() {
 		// Initialize Firebase Admin
 		admin.initializeApp();
-
-		// Password for App initial Creation
-		this._appInitialPassword = defineSecret("APP_INITIAL_PASSWORD");
 
 		// Simpro secret
 		this._simproKey = defineSecret("SIMPRO_KEY");
@@ -32,12 +27,7 @@ class FirebaseFunctionsService {
 
 		// Configure global options
 		setGlobalOptions({
-			secrets: [
-				this._appInitialPassword,
-				this._simproKey,
-				this._googleMapsKey,
-				this._resendEmailKey,
-			],
+			secrets: [this._simproKey, this._googleMapsKey, this._resendEmailKey],
 		});
 	}
 
@@ -46,12 +36,6 @@ class FirebaseFunctionsService {
 			FirebaseFunctionsService.instance = new FirebaseFunctionsService();
 		}
 		return FirebaseFunctionsService.instance;
-	}
-
-	// Password for App initial Creation
-	// Getter for appInitialPassword
-	get appInitialPassword(): SecretParam {
-		return this._appInitialPassword;
 	}
 
 	// Getter for Simpro API Key Secret

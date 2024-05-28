@@ -1,9 +1,9 @@
 import { CallableRequest, onCall } from "firebase-functions/v2/https";
-import { getCctvJobDetails } from "./getCctvJobDetails";
+import { getCctvJobDetails } from "./getCctvJobDetailsFunction";
 
 // Returns cctv job details from the SimproAPI
 exports.getCctvJobDetails = onCall(
-	{ timeoutSeconds: 2, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1 },
 	async (request: CallableRequest) => {
 		return await getCctvJobDetails(request);
 	}

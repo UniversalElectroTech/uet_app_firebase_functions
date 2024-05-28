@@ -2,7 +2,7 @@ import axios from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { LatLng } from "../../../../business_components/rcd_testing/models/LatLng";
 import { getGeocodeRoute } from "../config/routes";
-import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctions";
+import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 
 export async function getGeocodeByAddress(
 	request: CallableRequest

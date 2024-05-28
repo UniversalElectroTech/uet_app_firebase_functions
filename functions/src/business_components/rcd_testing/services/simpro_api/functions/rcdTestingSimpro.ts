@@ -30,7 +30,7 @@ exports.getProgressJobs = onCall(
 
 // Returns all job details from the SimproAPI
 exports.getJobDetails = onCall(
-	{ timeoutSeconds: 2, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1 },
 	async (request: CallableRequest) => {
 		return await getJobDetails(request);
 	}

@@ -50,21 +50,34 @@ export async function createUserFromInvite(request: CallableRequest) {
 				disabled: false,
 			})
 			.then(async (userRecord: UserRecord) => {
-				// Create user doc
-				await getFirestore()
+				const querySnapshot = await getFirestore()
 					.collection("app_users")
-					.doc(userRecord.uid)
-					.set({ simproId: simproId, securityGroup: null });
+					.where("simproId", "==", simproId)
+					.where("isAccountDeleted", "==", false)
+					.get();
+
+				var docId: string;
+				if (querySnapshot.empty) {
+					docId = userRecord.uid;
+				} else {
+					docId = querySnapshot.docs[0].id;
+				}
+
+				// Create user doc
+				await getFirestore().collection("app_users").doc(docId).set({
+					name: userData.name,
+					phoneNumber: userData.mobile,
+					email: userData.email,
+					simproId: simproId,
+					securityGroup: null,
+					isAccountDeleted: false,
+				});
 
 				// Delete invite Doc
 				await getFirestore().collection("app_invites").doc(simproId).delete();
 
 				return {
-					name: userData.name,
 					email: userData.email,
-					simproId: simproId,
-					firebaseDocId: userRecord.uid,
-					securityGroup: null,
 				};
 			});
 	} catch (error: any) {

@@ -1,8 +1,10 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { Resend } from "resend";
-import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { isAdmin } from "../../../firebaseFunctions/isAdmin";
+import { generateRandomToken } from "../../tokenGenerator";
+// import { appInviteTemplate } from "../html_templates/appInviteTemplate";
+// import { Resend } from "resend";
+// import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 
 export async function inviteEmployeeToApp(request: CallableRequest) {
 	// Check that the user is authenticated.
@@ -48,7 +50,9 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 			inviteToken: inviteTokenData,
 		});
 
-		await emailAppInvite(name, email, inviteTokenData.token, simproId);
+		// await emailAppInvite(name, email, inviteTokenData.token, simproId);
+
+		return;
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors
@@ -59,23 +63,23 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 	}
 }
 
-async function emailAppInvite(
-	name: string,
-	email: string,
-	token: string,
-	simproId: string
-) {
-	const inviteLink = `https://www.app.uet.net.au/welcome?user=${simproId}&token=${token}`;
+// async function emailAppInvite(
+// 	name: string,
+// 	email: string,
+// 	token: string,
+// 	simproId: string
+// ) {
+// 	const inviteLink = `https://www.app.uet.net.au/welcome?user=${simproId}&token=${token}`;
 
-	const resend = new Resend(firebaseFunctionsService.resendEmailKey.value());
+// 	const resend = new Resend(firebaseFunctionsService.resendEmailKey.value());
 
-	await resend.emails.send({
-		from: "Universal Electro Tech <noreply@uet.net.au>",
-		to: [email],
-		subject: "Invite to UET App",
-		html: appInviteTemplate(name, inviteLink),
-	});
-}
+// 	await resend.emails.send({
+// 		from: "Universal Electro Tech <noreply@uet.net.au>",
+// 		to: [email],
+// 		subject: "Invite to UET App",
+// 		html: appInviteTemplate(name, inviteLink),
+// 	});
+// }
 
 function generateInviteTokenData() {
 	const token = generateRandomToken(16);

@@ -1,4 +1,4 @@
-function appInviteTemplate(name: string, siteLink: string) {
+export function appInviteTemplate(name: string, siteLink: string) {
 	const emailTemplate = `<body
 	style="
 		background-color: #171a1d;
@@ -39,24 +39,17 @@ function appInviteTemplate(name: string, siteLink: string) {
 		You have been invited to join the UET app
 	</p>
 	
-	<a
-		href="${siteLink}"
-		style="
-			margin-top: 2rem;
-			padding-left: 2rem;
-			padding-right: 2rem;
-			padding-top: 0.5rem;
-			padding-bottom: 0.5rem;
-			background-color: #ffcd34;
-			border-radius: 1rem;
-			border: 0;
-			font-size: medium;
-			font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-				Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
-				sans-serif;
-		"
-	>
-		Get started
+	<div>
+		<!--[if mso]>
+			<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${siteLink}" style="height:40px;v-text-anchor:middle;width:200px;" arcsize="50%" stroke="f" fillcolor="#FFCD34">
+	  		<w:anchorlock/>
+	  		<center>
+		<![endif]-->
+		<a href="${siteLink}" style="background-color:#FFCD34;border-radius:20px;color:#171A1D;display:inline-block;font-family:sans-serif;font-size:13px;font-weight:bold;line-height:40px;text-align:center;text-decoration:none;width:200px;-webkit-text-size-adjust:none;">Get Started</a>
+		<!--[if mso]>
+	  		</center>
+			</v:roundrect>
+  		<![endif]--></div>
 	</a>
 	</body>`;
 

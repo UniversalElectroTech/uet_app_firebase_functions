@@ -40,46 +40,44 @@ export async function createUserFromInvite(request: CallableRequest) {
 			throw new HttpsError("failed-precondition", "Token has expired.");
 		}
 
-		getAuth()
-			.createUser({
-				email: userData.email,
-				emailVerified: true,
-				phoneNumber: userData.mobile,
-				password: password,
-				displayName: userData.name,
-				disabled: false,
-			})
-			.then(async (userRecord: UserRecord) => {
-				const querySnapshot = await getFirestore()
-					.collection("app_users")
-					.where("simproId", "==", simproId)
-					.where("isAccountDeleted", "==", false)
-					.get();
+		const countryCode = "61";
+		const mobileNum = formatToE164(userData.mobile, countryCode);
 
-				var docId: string;
-				if (querySnapshot.empty) {
-					docId = userRecord.uid;
-				} else {
-					docId = querySnapshot.docs[0].id;
-				}
+		// Create the user
+		const userRecord: UserRecord = await getAuth().createUser({
+			email: userData.email,
+			emailVerified: true,
+			phoneNumber: mobileNum,
+			password: password,
+			displayName: userData.name,
+			disabled: false,
+		});
+		const querySnapshot = await getFirestore()
+			.collection("app_users")
+			.where("simproId", "==", simproId)
+			.get();
 
-				// Create user doc
-				await getFirestore().collection("app_users").doc(docId).set({
-					name: userData.name,
-					phoneNumber: userData.mobile,
-					email: userData.email,
-					simproId: simproId,
-					securityGroup: null,
-					isAccountDeleted: false,
-				});
+		var docId: string;
+		if (querySnapshot.empty) {
+			docId = userRecord.uid;
+		} else {
+			docId = querySnapshot.docs[0].id;
+		}
 
-				// Delete invite Doc
-				await getFirestore().collection("app_invites").doc(simproId).delete();
+		// Create user doc
+		await getFirestore().collection("app_users").doc(docId).set({
+			name: userData.name,
+			mobile: userData.mobile,
+			email: userData.email,
+			simproId: simproId,
+			securityGroup: null,
+			isAccountDeleted: false,
+		});
 
-				return {
-					email: userData.email,
-				};
-			});
+		// Delete invite Doc
+		await getFirestore().collection("app_invites").doc(simproId).delete();
+
+		return userData.email;
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors
@@ -88,4 +86,21 @@ export async function createUserFromInvite(request: CallableRequest) {
 			throw error;
 		}
 	}
+}
+
+function stripSpaces(input: string): string {
+	return input.replace(/\s+/g, "");
+}
+
+function formatToE164(phoneNumber: string, countryCode: string): string {
+	// Remove spaces from the phone number
+	phoneNumber = stripSpaces(phoneNumber);
+
+	// Remove leading '0' if it exists
+	if (phoneNumber.startsWith("0")) {
+		phoneNumber = phoneNumber.slice(1);
+	}
+
+	// Ensure the phone number starts with the country code
+	return `+${countryCode}${phoneNumber}`;
 }

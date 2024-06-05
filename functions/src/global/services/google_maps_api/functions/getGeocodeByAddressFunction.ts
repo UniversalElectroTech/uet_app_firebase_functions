@@ -1,12 +1,9 @@
 import axios from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { LatLng } from "../../../../business_components/rcd_testing/models/LatLng";
 import { getGeocodeRoute } from "../config/routes";
 import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 
-export async function getGeocodeByAddress(
-	request: CallableRequest
-): Promise<LatLng | null> {
+export async function getGeocodeByAddress(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		throw new HttpsError(
@@ -43,7 +40,7 @@ export async function getGeocodeByAddress(
 				const latitude = location.lat;
 				const longitude = location.lng;
 
-				return new LatLng(latitude, longitude);
+				return { latitude: latitude, longitude: longitude };
 			} else {
 				// No location found for the address
 				throw new HttpsError(

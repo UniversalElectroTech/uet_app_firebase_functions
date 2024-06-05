@@ -15,7 +15,11 @@ export async function getAllCustomers(request: CallableRequest) {
 	}
 
 	try {
-		const { page, returnCount }: { page: number; returnCount: number } =
+		const {
+			page,
+			returnCount,
+			employeeSimproId,
+		}: { page: number; returnCount: number; employeeSimproId: string } =
 			request.data;
 
 		// Check if all required parameters have been received
@@ -23,7 +27,8 @@ export async function getAllCustomers(request: CallableRequest) {
 			page === undefined ||
 			page === null ||
 			returnCount === undefined ||
-			returnCount === null
+			returnCount === null ||
+			!employeeSimproId
 		) {
 			throw new HttpsError(
 				"failed-precondition",
@@ -33,7 +38,7 @@ export async function getAllCustomers(request: CallableRequest) {
 
 		// GET customers with rcd jobs via SimproAPI
 		const customerResponse = await simproApiService.get(
-			getRcdJobCustomersRoute(returnCount, page)
+			getRcdJobCustomersRoute(employeeSimproId, returnCount, page)
 		);
 		const customerList: any[] = customerResponse.data;
 

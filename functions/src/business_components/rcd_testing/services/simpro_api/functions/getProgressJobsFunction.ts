@@ -21,8 +21,13 @@ export async function getProgressJobs(request: CallableRequest) {
 			page,
 			returnCount,
 			customerSimproId,
-		}: { page: number; returnCount: number; customerSimproId: string } =
-			request.data;
+			employeeSimproId,
+		}: {
+			page: number;
+			returnCount: number;
+			customerSimproId: string;
+			employeeSimproId: string;
+		} = request.data;
 
 		// Check if all required parameters have been received
 		if (
@@ -30,7 +35,8 @@ export async function getProgressJobs(request: CallableRequest) {
 			page === null ||
 			returnCount === undefined ||
 			returnCount === null ||
-			!customerSimproId
+			!customerSimproId ||
+			!employeeSimproId
 		) {
 			throw new HttpsError(
 				"failed-precondition",
@@ -40,7 +46,12 @@ export async function getProgressJobs(request: CallableRequest) {
 
 		// GET rcd progress jobs via SimproAPI
 		const jobResponse = await simproApiService.get(
-			getRcdProgressJobsRoute(customerSimproId, returnCount, page)
+			getRcdProgressJobsRoute(
+				employeeSimproId,
+				customerSimproId,
+				returnCount,
+				page
+			)
 		);
 		const jobList: any[] = jobResponse.data;
 

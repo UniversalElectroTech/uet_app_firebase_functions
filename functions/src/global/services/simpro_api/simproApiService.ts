@@ -33,7 +33,6 @@ class SimproApiService {
 				},
 			});
 		} catch (error) {
-			console.error("Error initializing ApiService:", error);
 			throw error;
 		}
 	}

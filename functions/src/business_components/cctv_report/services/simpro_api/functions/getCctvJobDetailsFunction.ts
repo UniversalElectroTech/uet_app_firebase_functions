@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { CctvJob } from "../../../models/cctvJob";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
-import { getJobDetailsRoute } from "../../../../../global/services/simpro_api/config/routes";
+import { getCctvReportJobsRoute } from "../config/routes";
 
 export async function getCctvJobDetails(request: CallableRequest) {
 	// Check that the user is authenticated.
@@ -15,10 +15,10 @@ export async function getCctvJobDetails(request: CallableRequest) {
 	}
 
 	try {
-		const { simproJobId }: { simproJobId: string } = request.data;
+		const { userSimproId }: { userSimproId: string } = request.data;
 
 		// Check if all required parameters have been received
-		if (!simproJobId) {
+		if (!userSimproId) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
@@ -27,7 +27,7 @@ export async function getCctvJobDetails(request: CallableRequest) {
 
 		// GET job details by ID via SimproAPI
 		const jobResponse = await simproApiService.get(
-			getJobDetailsRoute(simproJobId)
+			getCctvReportJobsRoute(userSimproId)
 		);
 
 		// Assuming CctvJob has a fromMap method similar to your Dart code

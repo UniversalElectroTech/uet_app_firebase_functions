@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { Job } from "../../../models/job";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import {
 	getJobDetailsRoute,
@@ -43,12 +42,7 @@ export async function getJobDetails(request: CallableRequest) {
 		);
 		const siteAddressMap: any = siteAddressResponse.data[0];
 
-		const job = Job.fromSimproMap({
-			jobData: jobMap,
-			siteData: siteAddressMap,
-		});
-
-		return job;
+		return { jobData: jobMap, siteData: siteAddressMap };
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors

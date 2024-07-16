@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { CctvJob } from "../../../models/cctvJob";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import { getCctvReportJobsRoute } from "../config/routes";
 
@@ -30,10 +29,9 @@ export async function getCctvJobDetails(request: CallableRequest) {
 			getCctvReportJobsRoute(userSimproId)
 		);
 
-		// Assuming CctvJob has a fromMap method similar to your Dart code
-		const cctvJob = CctvJob.fromMap(jobResponse.data);
+		const responseData: any[] = jobResponse.data;
 
-		return cctvJob.toMap();
+		return responseData;
 	} catch (error: any) {
 		if (axios.isAxiosError(error)) {
 			const axiosError = error as AxiosError<{ errorMessage?: string }>;

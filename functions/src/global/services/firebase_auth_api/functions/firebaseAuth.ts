@@ -2,11 +2,13 @@ import { CallableRequest, onCall } from "firebase-functions/v2/https";
 import { createUserFromInvite } from "./createUserFromInviteFunction";
 import { deleteUser } from "./deleteUserFunction";
 import { deleteUserInvite } from "./deleteUserInviteFunction";
+import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 
 // Creates a user using the invite token sent to them
 exports.createUserFromInvite = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1 },
 	async (request: CallableRequest) => {
+		firebaseFunctionsService;
 		return await createUserFromInvite(request);
 	}
 );
@@ -15,6 +17,7 @@ exports.createUserFromInvite = onCall(
 exports.deleteUserInvite = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1 },
 	async (request: CallableRequest) => {
+		firebaseFunctionsService;
 		return await deleteUserInvite(request);
 	}
 );
@@ -23,6 +26,7 @@ exports.deleteUserInvite = onCall(
 exports.deleteUser = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1 },
 	async (request: CallableRequest) => {
+		firebaseFunctionsService;
 		return await deleteUser(request);
 	}
 );

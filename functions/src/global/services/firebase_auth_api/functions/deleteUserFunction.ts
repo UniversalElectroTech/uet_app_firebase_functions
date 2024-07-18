@@ -22,6 +22,7 @@ export async function deleteUser(request: CallableRequest) {
 			"Required parameters are missing."
 		);
 	}
+
 	// Check if user is admin
 	if (!isAdmin(request.auth.uid)) {
 		throw new HttpsError(

@@ -32,7 +32,7 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 	}
 
 	// Check if user is admin
-	if (!isAdmin(request.auth.uid)) {
+	if (!(await isAdmin(request.auth.uid))) {
 		throw new HttpsError(
 			"failed-precondition",
 			"User is not authenticated for this action."

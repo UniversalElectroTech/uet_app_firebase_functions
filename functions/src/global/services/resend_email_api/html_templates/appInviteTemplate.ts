@@ -13,7 +13,7 @@ export function appInviteTemplate(name: string, siteLink: string) {
 		text-align: center;
 	"
 	>
-	<img style="height: 30rem" src="/assets/UET REV .300.png" />
+	<img style="height: 30rem" src="https://firebasestorage.googleapis.com/v0/b/uet-app-281cf.appspot.com/o/public%2FUET%20REV%20.300.png?alt=media&token=9758a3bf-c89d-42e1-b6ff-83f8bf0c60bd" />
 	
 	<p
 		style="

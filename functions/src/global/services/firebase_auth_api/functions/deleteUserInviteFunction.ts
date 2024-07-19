@@ -23,7 +23,7 @@ export async function deleteUserInvite(request: CallableRequest) {
 	}
 
 	// Check if user is admin
-	if (!isAdmin(request.auth.uid)) {
+	if (!(await isAdmin(request.auth.uid))) {
 		throw new HttpsError(
 			"failed-precondition",
 			"User is not authenticated for this action."
@@ -32,6 +32,7 @@ export async function deleteUserInvite(request: CallableRequest) {
 
 	try {
 		await getFirestore().collection("app_invites").doc(simproId).delete();
+		return;
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors

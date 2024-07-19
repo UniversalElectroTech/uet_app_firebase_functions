@@ -7,14 +7,16 @@ import { Resend } from "resend";
 import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 
 export async function inviteEmployeeToApp(request: CallableRequest) {
+	console.log("inviteEmployeeToApp called");
 	// Check that the user is authenticated.
 	if (!request.auth) {
-		// Throwing an HttpsError so that the client gets the error details.
+		console.log("User not authenticated");
 		throw new HttpsError(
 			"failed-precondition",
-			"The function must be " + "called while authenticated."
+			"The function must be called while authenticated."
 		);
 	}
+
 	const {
 		email,
 		mobile,
@@ -25,6 +27,7 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 
 	// Check if all required parameters have been received
 	if (!email || !mobile || !name || !simproId) {
+		console.log("Missing parameters", { email, mobile, name, simproId });
 		throw new HttpsError(
 			"failed-precondition",
 			"Required parameters are missing."
@@ -33,6 +36,7 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 
 	// Check if user is admin
 	if (!(await isAdmin(request.auth.uid))) {
+		console.log("User is not admin", request.auth.uid);
 		throw new HttpsError(
 			"failed-precondition",
 			"User is not authenticated for this action."
@@ -41,6 +45,7 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 
 	try {
 		const inviteTokenData = generateInviteTokenData();
+		console.log("Generated invite token data", inviteTokenData);
 
 		await getFirestore().collection("app_invites").doc(simproId).set({
 			name: name,
@@ -49,13 +54,13 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 			simproId: simproId,
 			inviteToken: inviteTokenData,
 		});
+		console.log("Stored invite in Firestore");
 
 		await emailAppInvite(name, email, inviteTokenData.token, simproId);
-
-		return;
+		console.log("Sent email invite");
 	} catch (error: any) {
+		console.error("Error in inviteEmployeeToApp", error);
 		if (error instanceof Error) {
-			// Handle standard errors
 			throw new HttpsError("internal", error.message || "An error occurred");
 		} else {
 			throw error;
@@ -73,12 +78,19 @@ async function emailAppInvite(
 
 	const resend = new Resend(firebaseFunctionsService.resendEmailKey.value());
 
-	await resend.emails.send({
-		from: "Universal Electro Tech <noreply@uet.net.au>",
-		to: [email],
-		subject: "Invite to UET App",
-		html: appInviteTemplate(name, inviteLink),
-	});
+	try {
+		console.log("Sending email invite via Resend");
+		await resend.emails.send({
+			from: "Universal Electro Tech <noreply@uet.net.au>",
+			to: [email],
+			subject: "Invite to UET App",
+			html: appInviteTemplate(name, inviteLink),
+		});
+		console.log("Email invite sent successfully");
+	} catch (error: any) {
+		console.error("Error sending email invite", error);
+		throw new Error("Failed to send email invite");
+	}
 }
 
 function generateInviteTokenData() {

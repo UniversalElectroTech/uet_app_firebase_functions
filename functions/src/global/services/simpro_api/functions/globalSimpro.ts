@@ -6,7 +6,7 @@ import { postJobOneOffItem } from "./postJobOneOffItemFunction";
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.getAllEmployees = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await getAllEmployees(request);
 	}
@@ -14,7 +14,7 @@ exports.getAllEmployees = onCall(
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.patchToggleJobStage = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await patchToggleJobStage(request);
 	}
@@ -22,7 +22,7 @@ exports.patchToggleJobStage = onCall(
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.postJobAttachments = onCall(
-	{ timeoutSeconds: 10, maxInstances: 10 },
+	{ timeoutSeconds: 10, maxInstances: 10, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await postJobAttachments(request);
 	}
@@ -30,7 +30,7 @@ exports.postJobAttachments = onCall(
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.postJobOneOffItem = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await postJobOneOffItem(request);
 	}

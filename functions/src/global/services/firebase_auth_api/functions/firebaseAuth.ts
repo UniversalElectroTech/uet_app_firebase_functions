@@ -6,7 +6,7 @@ import { firebaseFunctionsService } from "../../../firebaseFunctions/services/fi
 
 // Creates a user using the invite token sent to them
 exports.createUserFromInvite = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		firebaseFunctionsService;
 		return await createUserFromInvite(request);
@@ -15,7 +15,7 @@ exports.createUserFromInvite = onCall(
 
 // Removes the pending account from the user
 exports.deleteUserInvite = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		firebaseFunctionsService;
 		return await deleteUserInvite(request);
@@ -24,7 +24,7 @@ exports.deleteUserInvite = onCall(
 
 // Deletes the users auth account
 exports.deleteUser = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		firebaseFunctionsService;
 		return await deleteUser(request);

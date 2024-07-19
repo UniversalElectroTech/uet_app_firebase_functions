@@ -4,7 +4,7 @@ import { firebaseFunctionsService } from "../../../firebaseFunctions/services/fi
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.inviteEmployeeToApp = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1 },
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		firebaseFunctionsService;
 		return await inviteEmployeeToApp(request);

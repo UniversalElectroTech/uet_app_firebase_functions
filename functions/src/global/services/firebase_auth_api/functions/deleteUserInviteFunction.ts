@@ -32,7 +32,6 @@ export async function deleteUserInvite(request: CallableRequest) {
 
 	try {
 		await getFirestore().collection("app_invites").doc(simproId).delete();
-		return;
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors

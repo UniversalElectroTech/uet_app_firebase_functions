@@ -5,6 +5,7 @@ import { generateRandomToken } from "../../tokenGenerator";
 import { appInviteTemplate } from "../html_templates/appInviteTemplate";
 import { Resend } from "resend";
 import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
+import { getAuth } from "firebase-admin/auth";
 
 export async function inviteEmployeeToApp(request: CallableRequest) {
 	console.log("inviteEmployeeToApp called");
@@ -44,6 +45,30 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 	}
 
 	try {
+		const querySnapshot = await getFirestore()
+			.collection("app_users")
+			.where("simproId", "==", simproId)
+			.get();
+
+		// If user document previously created, re-enable account.
+		if (!querySnapshot.empty) {
+			const doc = querySnapshot.docs[0];
+
+			// Enable Firebase Auth user
+			const docId = doc.id;
+			await getAuth().updateUser(docId, {
+				disabled: false,
+			});
+
+			// Update the isAccountDeleted field to false
+			await getFirestore()
+				.collection("app_users")
+				.doc(docId)
+				.update({ isAccountDeleted: false });
+
+			return { alreadyHasAccount: true, firebaseId: docId };
+		}
+
 		const inviteTokenData = generateInviteTokenData();
 		console.log("Generated invite token data", inviteTokenData);
 
@@ -58,6 +83,8 @@ export async function inviteEmployeeToApp(request: CallableRequest) {
 
 		await emailAppInvite(name, email, inviteTokenData.token, simproId);
 		console.log("Sent email invite");
+
+		return { alreadyHasAccount: false, firebaseId: null };
 	} catch (error: any) {
 		console.error("Error in inviteEmployeeToApp", error);
 		if (error instanceof Error) {
@@ -74,7 +101,7 @@ async function emailAppInvite(
 	token: string,
 	simproId: string
 ) {
-	const inviteLink = `https://www.app.uet.net.au/welcome?user=${simproId}&token=${token}`;
+	const inviteLink = `https://app.uet.net.au/welcome?user=${simproId}&token=${token}`;
 
 	const resend = new Resend(firebaseFunctionsService.resendEmailKey.value());
 

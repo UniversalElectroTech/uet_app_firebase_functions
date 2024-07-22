@@ -40,6 +40,9 @@ export async function createUserFromInvite(request: CallableRequest) {
 			throw new HttpsError("failed-precondition", "Token has expired.");
 		}
 
+		// Delete invite Doc
+		await getFirestore().collection("app_invites").doc(simproId).delete();
+
 		const countryCode = "61";
 		const mobileNum = formatToE164(userData.mobile, countryCode);
 
@@ -52,20 +55,9 @@ export async function createUserFromInvite(request: CallableRequest) {
 			displayName: userData.name,
 			disabled: false,
 		});
-		const querySnapshot = await getFirestore()
-			.collection("app_users")
-			.where("simproId", "==", simproId)
-			.get();
-
-		var docId: string;
-		if (querySnapshot.empty) {
-			docId = userRecord.uid;
-		} else {
-			docId = querySnapshot.docs[0].id;
-		}
 
 		// Create user doc
-		await getFirestore().collection("app_users").doc(docId).set({
+		await getFirestore().collection("app_users").doc(userRecord.uid).set({
 			name: userData.name,
 			mobile: userData.mobile,
 			email: userData.email,
@@ -73,9 +65,6 @@ export async function createUserFromInvite(request: CallableRequest) {
 			securityGroup: null,
 			isAccountDeleted: false,
 		});
-
-		// Delete invite Doc
-		await getFirestore().collection("app_invites").doc(simproId).delete();
 
 		return userData.email;
 	} catch (error: any) {

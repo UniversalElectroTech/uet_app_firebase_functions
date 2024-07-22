@@ -37,8 +37,9 @@ export async function deleteUser(request: CallableRequest) {
 			.doc(firebaseUserId)
 			.set({ isAccountDeleted: true, securityGroup: "" }, { merge: true });
 
-		getAuth().deleteUser(firebaseUserId);
-		return;
+		await getAuth().updateUser(firebaseUserId, {
+			disabled: true,
+		});
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors

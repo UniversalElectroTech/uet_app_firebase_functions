@@ -3,12 +3,16 @@ import { BASE_URL, DEFAULT_PAGE, DEFAULT_RETURN_COUNT } from "./config";
 // GET ================================================================
 export const getToken: string = "https://uet.simprosuite.com/oauth2/token";
 
-export function getJobDetailsRoute(simproJobId: string) {
+export function getJobDetailsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
 }
 
 export function getEmployeesRoute(): string {
 	return `${BASE_URL}/employees/?columns=ID,Name,PrimaryContact`;
+}
+
+export function getFilteredSuppliersRoute(supplierName: string): string {
+	return `${BASE_URL}/suppliers/?Name=${supplierName}%25`;
 }
 
 export function getJobSectionsRoute(simproJobId: string): string {

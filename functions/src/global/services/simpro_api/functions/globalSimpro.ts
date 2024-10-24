@@ -3,7 +3,8 @@ import { getAllEmployees } from "./getAllEmployeesFunction";
 import { patchToggleJobStage } from "./patchToggleJobStageFunction";
 import { postJobAttachments } from "./postJobAttachmentsFunction";
 import { postJobOneOffItem } from "./postJobOneOffItemFunction";
-import { getFilteredSimproSuppliers } from "./getFilteredSimproSuppliers";
+import { getFilteredSimproCustomers } from "./getFilteredSimproSuppliers";
+import { postJobNote } from "./postJobNoteFunction";
 
 // Returns all RCD testing complete jobs from the SimproAPI
 exports.getAllEmployees = onCall(
@@ -38,9 +39,17 @@ exports.postJobOneOffItem = onCall(
 );
 
 // Returns all RCD testing complete jobs from the SimproAPI
-exports.postJobOneOffItem = onCall(
+exports.postJobNote = onCall(
 	{ timeoutSeconds: 10, maxInstances: 10, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await getFilteredSimproSuppliers(request);
+		return await postJobNote(request);
+	}
+);
+
+// Returns all RCD testing complete jobs from the SimproAPI
+exports.getFilteredSimproSuppliers = onCall(
+	{ timeoutSeconds: 10, maxInstances: 10, enforceAppCheck: true },
+	async (request: CallableRequest) => {
+		return await getFilteredSimproCustomers(request);
 	}
 );

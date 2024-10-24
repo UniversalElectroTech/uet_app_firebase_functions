@@ -1,10 +1,10 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import axios, { AxiosResponse, AxiosError } from "axios";
-import { getFilteredSuppliersRoute as getFilteredCustomersRoute } from "../config/routes";
+import { postjobNoteRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 
-// returns filtered supplier from Simpro
-export async function getFilteredSimproCustomers(request: CallableRequest) {
+// adds one of item to job
+export async function postJobNote(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -13,19 +13,42 @@ export async function getFilteredSimproCustomers(request: CallableRequest) {
 			"The function must be " + "called while authenticated."
 		);
 	}
-
 	try {
-		const { customerName: customerName }: { customerName: string } =
-			request.data;
+		const {
+			simproJobId,
+			subject,
+			note,
+			isVisibleToCustomer,
+		}: {
+			simproJobId: string;
+			subject: string;
+			note: string;
+			isVisibleToCustomer: boolean;
+		} = request.data;
 
-		const response: AxiosResponse<any> = await simproApiService.get(
-			getFilteredCustomersRoute(customerName)
+		// Check if all required parameters have been received
+		if (!simproJobId || !subject || !note) {
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
+		}
+
+		// Prepare payload
+		const payload = {
+			Subject: subject,
+			Note: note,
+			Visibility: { Customer: isVisibleToCustomer },
+		};
+
+		// Put one off item in Simpro job
+		const response: AxiosResponse = await simproApiService.post(
+			postjobNoteRoute(simproJobId),
+			payload
 		);
 
-		// Parse response and create list of employees
-		const customerDataList: any[] = response.data;
-
-		return customerDataList;
+		// Return response data
+		return response.data;
 	} catch (error: any) {
 		if (error instanceof Error) {
 			// Handle standard errors

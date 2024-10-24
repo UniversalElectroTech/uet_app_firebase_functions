@@ -21,7 +21,7 @@ export async function patchToggleJobStage(request: CallableRequest) {
 			request.data;
 
 		// Check if all required parameters have been received
-		if (!simproJobId || !description || !currentStage) {
+		if (!simproJobId || !currentStage) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
@@ -31,11 +31,23 @@ export async function patchToggleJobStage(request: CallableRequest) {
 		// Determine the stage based on the 'currentStage' argument
 		const stage: string = currentStage === "Progress" ? "Complete" : "Progress";
 
-		// Prepare payload
 		const payload = {
 			Stage: stage,
 			Description: description,
 		};
+
+		// if (description != "") {
+		// 	// Prepare payload
+		// 	payload = {
+		// 		Stage: stage,
+		// 		Description: description,
+		// 	};
+		// } else {
+		// 	payload = {
+		// 		Stage: stage,
+		// 		Description: description,
+		// 	};
+		// }
 
 		// Make API patch request
 		const response: AxiosResponse = await simproApiService.patch(

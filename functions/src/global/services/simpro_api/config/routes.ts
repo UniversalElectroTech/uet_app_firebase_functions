@@ -12,7 +12,7 @@ export function getEmployeesRoute(): string {
 }
 
 export function getFilteredSuppliersRoute(supplierName: string): string {
-	return `${BASE_URL}/suppliers/?Name=${supplierName}%25`;
+	return `${BASE_URL}/vendors/?Name=${supplierName}%25`;
 }
 
 export function getJobSectionsRoute(simproJobId: string): string {
@@ -29,6 +29,10 @@ export function getSitesRoute(
 // ====================================================================
 
 // POST ===============================================================
+export function postjobNoteRoute(simproJobId: string): string {
+	return `${BASE_URL}/jobs/${simproJobId}/notes/`;
+}
+
 export function postJobAttachmentsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/files/`;
 }

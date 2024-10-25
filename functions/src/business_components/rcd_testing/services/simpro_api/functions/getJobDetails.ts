@@ -44,16 +44,18 @@ export async function getJobDetails(request: CallableRequest) {
 
 		return { jobData: jobMap, siteData: siteAddressMap };
 	} catch (error: any) {
-		if (error instanceof Error) {
-			// Handle standard errors
-			throw new HttpsError("internal", error.message || "An error occurred");
-		} else if (axios.isAxiosError(error)) {
+		if (axios.isAxiosError(error)) {
 			// Handle Axios errors
-			const axiosError = error as AxiosError<{ errorMessage?: string }>;
-			const serverErrorMessage = axiosError.response?.data?.errorMessage;
+			const axiosError = error as AxiosError<{
+				errors: Array<{ message: string }>;
+			}>;
+			const serverErrorMessage = axiosError.response?.data?.errors[0]?.message;
 			const errorMessage =
 				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
+		} else if (error instanceof Error) {
+			// Handle standard errors
+			throw new HttpsError("internal", error.message || "An error occurred");
 		} else {
 			throw error;
 		}

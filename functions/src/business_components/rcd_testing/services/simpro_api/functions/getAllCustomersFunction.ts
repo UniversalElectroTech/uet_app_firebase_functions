@@ -62,12 +62,17 @@ export async function getAllCustomers(request: CallableRequest) {
 		return returnMap;
 	} catch (error: any) {
 		if (axios.isAxiosError(error)) {
-			const axiosError = error as AxiosError<{ errorMessage?: string }>;
+			// Handle Axios errors
+			const axiosError = error as AxiosError<{
+				errors: Array<{ message: string }>;
+			}>;
+			const serverErrorMessage = axiosError.response?.data?.errors[0]?.message;
 			const errorMessage =
-				axiosError.response?.data?.errorMessage ||
-				axiosError.message ||
-				"An error occurred";
+				serverErrorMessage || axiosError.message || "An error occurred";
 			throw new HttpsError("internal", errorMessage);
+		} else if (error instanceof Error) {
+			// Handle standard errors
+			throw new HttpsError("internal", error.message || "An error occurred");
 		} else {
 			throw error;
 		}

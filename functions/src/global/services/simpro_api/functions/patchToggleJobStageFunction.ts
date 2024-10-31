@@ -1,7 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import axios, { AxiosResponse, AxiosError } from "axios";
 import { patchJobStageRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
+import { AxiosResponse } from "axios";
+import { handleAxiosError } from "../../helper_functions/errorHandling";
 
 // Updates job stage
 export async function patchToggleJobStage(request: CallableRequest) {
@@ -58,20 +59,6 @@ export async function patchToggleJobStage(request: CallableRequest) {
 		// Return response data
 		return response.data;
 	} catch (error: any) {
-		if (axios.isAxiosError(error)) {
-			// Handle Axios errors
-			const axiosError = error as AxiosError<{
-				errors: Array<{ message: string }>;
-			}>;
-			const serverErrorMessage = axiosError.response?.data?.errors[0]?.message;
-			const errorMessage =
-				serverErrorMessage || axiosError.message || "An error occurred";
-			throw new HttpsError("internal", errorMessage);
-		} else if (error instanceof Error) {
-			// Handle standard errors
-			throw new HttpsError("internal", error.message || "An error occurred");
-		} else {
-			throw error;
-		}
+		return handleAxiosError(error);
 	}
 }

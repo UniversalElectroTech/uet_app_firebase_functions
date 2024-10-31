@@ -1,7 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import axios, { AxiosResponse, AxiosError } from "axios";
 import { postJobAttachmentsRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
+import { handleAxiosError } from "../../helper_functions/errorHandling";
+import { AxiosResponse } from "axios";
 
 // adds attachments to job
 export async function postJobAttachments(request: CallableRequest) {
@@ -35,20 +36,6 @@ export async function postJobAttachments(request: CallableRequest) {
 
 		return response.data;
 	} catch (error: any) {
-		if (axios.isAxiosError(error)) {
-			// Handle Axios errors
-			const axiosError = error as AxiosError<{
-				errors: Array<{ message: string }>;
-			}>;
-			const serverErrorMessage = axiosError.response?.data?.errors[0]?.message;
-			const errorMessage =
-				serverErrorMessage || axiosError.message || "An error occurred";
-			throw new HttpsError("internal", errorMessage);
-		} else if (error instanceof Error) {
-			// Handle standard errors
-			throw new HttpsError("internal", error.message || "An error occurred");
-		} else {
-			throw error;
-		}
+		return handleAxiosError(error);
 	}
 }

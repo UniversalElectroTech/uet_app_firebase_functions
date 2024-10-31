@@ -1,8 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import axios, { AxiosError } from "axios";
 import { getRcdCompleteJobsRoute } from "../config/routes";
 import { getSitesRoute } from "../../../../../global/services/simpro_api/config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
+import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 
 // Returns all RCD testing complete jobs from the SimproAPI
 export async function getCompleteJobs(request: CallableRequest) {
@@ -87,20 +87,6 @@ export async function getCompleteJobs(request: CallableRequest) {
 		};
 		return returnMap;
 	} catch (error: any) {
-		if (axios.isAxiosError(error)) {
-			// Handle Axios errors
-			const axiosError = error as AxiosError<{
-				errors: Array<{ message: string }>;
-			}>;
-			const serverErrorMessage = axiosError.response?.data?.errors[0]?.message;
-			const errorMessage =
-				serverErrorMessage || axiosError.message || "An error occurred";
-			throw new HttpsError("internal", errorMessage);
-		} else if (error instanceof Error) {
-			// Handle standard errors
-			throw new HttpsError("internal", error.message || "An error occurred");
-		} else {
-			throw error;
-		}
+		return handleAxiosError(error);
 	}
 }

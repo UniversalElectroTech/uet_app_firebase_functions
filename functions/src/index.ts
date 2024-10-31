@@ -4,6 +4,7 @@ import * as cctvReportSimpro from "./business_components/cctv_report/services/si
 import * as googleMaps from "./global/services/google_maps_api/functions/googleMaps";
 import * as firebaseAuth from "./global/services/firebase_auth_api/functions/firebaseAuth";
 import * as resendEmail from "./global/services/resend_email_api/functions/resendEmail";
+import * as simproFolderCreation from "./business_components/simpro_folder_creation/simpro_api/functions/simproFolderCreation";
 
 exports.globalSimpro = globalSimpro;
 exports.rcdTestingSimpro = rcdTestingSimpro;
@@ -11,3 +12,4 @@ exports.cctvReportSimpro = cctvReportSimpro;
 exports.googleMaps = googleMaps;
 exports.firebaseAuth = firebaseAuth;
 exports.resendEmail = resendEmail;
+exports.simproFolderCreation = simproFolderCreation;

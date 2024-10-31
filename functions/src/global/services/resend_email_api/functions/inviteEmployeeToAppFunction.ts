@@ -1,11 +1,11 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { isAdmin } from "../../../firebaseFunctions/isAdmin";
-import { generateRandomToken } from "../../tokenGenerator";
 import { appInviteTemplate } from "../html_templates/appInviteTemplate";
 import { Resend } from "resend";
 import { firebaseFunctionsService } from "../../../firebaseFunctions/services/firebaseFunctionsServ";
 import { getAuth } from "firebase-admin/auth";
+import { generateRandomToken } from "../../tokenGenerator";
 
 export async function inviteEmployeeToApp(request: CallableRequest) {
 	console.log("inviteEmployeeToApp called");

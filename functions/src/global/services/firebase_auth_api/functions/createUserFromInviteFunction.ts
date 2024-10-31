@@ -2,7 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { UserRecord } from "firebase-functions/v1/auth";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { isTokenValid } from "../../isTokenValid";
+import { isTokenValid } from "../../helper_functions/isTokenValid";
 
 // returns all employees in Simpro
 export async function createUserFromInvite(request: CallableRequest) {

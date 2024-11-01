@@ -1,5 +1,5 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { getEmployeesRoute } from "../config/routes";
+import { getContractorsRoute, getEmployeesRoute } from "../config/routes";
 import { simproApiService } from "../simproApiService";
 import { handleAxiosError } from "../../helper_functions/errorHandling";
 import { AxiosResponse } from "axios";
@@ -16,14 +16,23 @@ export async function getAllEmployees(request: CallableRequest) {
 	}
 
 	try {
-		const response: AxiosResponse<any> = await simproApiService.get(
+		const employeeResponse: AxiosResponse<any> = await simproApiService.get(
 			getEmployeesRoute()
 		);
 
 		// Parse response and create list of employees
-		const employeeDataList: any[] = response.data;
+		const employeeDataList: any[] = employeeResponse.data;
 
-		return employeeDataList;
+		const contractorResponse: AxiosResponse<any> = await simproApiService.get(
+			getContractorsRoute()
+		);
+
+		// Parse response and create list of employees
+		const contractorDataList: any[] = contractorResponse.data;
+
+		const totalDataList: any[] = [...employeeDataList, ...contractorDataList];
+
+		return totalDataList;
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}

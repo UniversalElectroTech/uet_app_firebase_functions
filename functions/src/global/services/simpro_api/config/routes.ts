@@ -11,6 +11,10 @@ export function getEmployeesRoute(): string {
 	return `${BASE_URL}/employees/?columns=ID,Name,PrimaryContact`;
 }
 
+export function getContractorsRoute(): string {
+	return `${BASE_URL}/contractors/?columns=ID,Name,PrimaryContact`;
+}
+
 export function getFilteredSuppliersRoute(supplierName: string): string {
 	return `${BASE_URL}/vendors/?Name=${supplierName}%25`;
 }

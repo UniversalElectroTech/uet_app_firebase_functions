@@ -28,11 +28,22 @@ export function getSitesRoute(
 	returnCount: number = DEFAULT_RETURN_COUNT,
 	page: number = DEFAULT_PAGE
 ): string {
-	return `${BASE_URL}/sites/?columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})`;
+	return `${BASE_URL}/sites/?pageSize=${returnCount}&columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})`;
 }
 // ====================================================================
 
 // POST ===============================================================
+export function postJobSection(simproJobId: string): string {
+	return `${BASE_URL}/jobs/${simproJobId}/sections/`;
+}
+
+export function postUetMaintenanceCostCentre(
+	simproJobId: string,
+	simproSectionId: string
+): string {
+	return `${BASE_URL}/jobs/${simproJobId}/sections/${simproSectionId}/costCenters/`;
+}
+
 export function postjobNoteRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}/notes/`;
 }

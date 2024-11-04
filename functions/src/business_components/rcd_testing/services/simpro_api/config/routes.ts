@@ -12,7 +12,7 @@ export function getRcdProgressJobsRoute(
 	returnCount: number = DEFAULT_RETURN_COUNT,
 	page: number = DEFAULT_PAGE
 ): string {
-	return `${BASE_URL}/jobs/?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage,CustomFields&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=Progress&Customer.Id=${companySimproId}?pageSize=${returnCount}&page=${page}`;
+	return `${BASE_URL}/jobs/?pageSize=${returnCount}&page=${page}&columns=ID,Name,Customer,Site,SiteContact,Notes,Stage,CustomFields&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=Progress&Customer.Id=${companySimproId}`;
 }
 
 export function getRcdCompleteJobsRoute(
@@ -21,7 +21,7 @@ export function getRcdCompleteJobsRoute(
 	returnCount: number = DEFAULT_RETURN_COUNT,
 	page: number = DEFAULT_PAGE
 ): string {
-	return `${BASE_URL}/jobs/?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage,CustomFields&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=Complete&Customer.Id=${companySimproId}?pageSize=${returnCount}&page=${page}`;
+	return `${BASE_URL}/jobs/?pageSize=${returnCount}&page=${page}&columns=ID,Name,Customer,Site,SiteContact,Notes,Stage,CustomFields&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=Complete&Customer.Id=${companySimproId}`;
 }
 
 export function getRcdJobCustomersRoute(

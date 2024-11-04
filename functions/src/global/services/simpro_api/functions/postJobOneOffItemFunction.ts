@@ -1,8 +1,14 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { postOneOffItemRoute, getJobSectionsRoute } from "../config/routes";
+import {
+	postOneOffItemRoute,
+	getJobSectionsRoute,
+	postJobSection,
+	postUetMaintenanceCostCentre as postUetMaintenanceCostCenter,
+} from "../config/routes";
 import { simproApiService } from "../simproApiService";
 import { handleAxiosError } from "../../helper_functions/errorHandling";
 import { AxiosResponse } from "axios";
+import { MAINTENANCE_COST_CENTRE_ID } from "../config/config";
 
 // adds one of item to job
 export async function postJobOneOffItem(request: CallableRequest) {
@@ -35,11 +41,33 @@ export async function postJobOneOffItem(request: CallableRequest) {
 			getJobSectionsRoute(simproJobId)
 		);
 
+		var sectionId;
+		var costCenterId;
+
 		// Parse JSON response and extract sectionID and costCenterID
-		const sections = getResponse.data["Sections"];
-		const section = sections[0];
-		const sectionID = section["ID"].toString();
-		const costCenterID = section["CostCenters"][0]["ID"].toString();
+		const sections: Array<any> = getResponse.data["Sections"];
+
+		if (sections.length == 0) {
+			// Create Job Section
+			const postSectionResponse: AxiosResponse = await simproApiService.post(
+				postJobSection(simproJobId),
+				{}
+			);
+
+			sectionId = postSectionResponse.data["ID"].toString();
+
+			// Create Cost Centre
+			const postCostCentreResponse: AxiosResponse = await simproApiService.post(
+				postUetMaintenanceCostCenter(simproJobId, sectionId),
+				{ CostCenter: MAINTENANCE_COST_CENTRE_ID }
+			);
+
+			costCenterId = postCostCentreResponse.data["ID"].toString();
+		} else {
+			const section = sections[0];
+			sectionId = section["ID"].toString();
+			costCenterId = section["CostCenters"][0]["ID"].toString();
+		}
 
 		// Prepare payload
 		const payload = [
@@ -53,7 +81,7 @@ export async function postJobOneOffItem(request: CallableRequest) {
 
 		// Put one off item in Simpro job
 		const response: AxiosResponse = await simproApiService.put(
-			postOneOffItemRoute(simproJobId, sectionID, costCenterID),
+			postOneOffItemRoute(simproJobId, sectionId, costCenterId),
 			payload
 		);
 

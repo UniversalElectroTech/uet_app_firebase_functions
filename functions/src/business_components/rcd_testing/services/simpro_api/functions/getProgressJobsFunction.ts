@@ -44,12 +44,14 @@ export async function getProgressJobs(request: CallableRequest) {
 			);
 		}
 
+		const returnCountTemp = 250;
+
 		// GET rcd progress jobs via SimproAPI
 		const jobResponse = await simproApiService.get(
 			getRcdProgressJobsRoute(
 				employeeSimproId,
 				customerSimproId,
-				returnCount,
+				returnCountTemp,
 				page
 			)
 		);
@@ -74,7 +76,7 @@ export async function getProgressJobs(request: CallableRequest) {
 
 		// GET job site information via SimproAPI
 		const siteAddressResponse = await simproApiService.get(
-			getSitesRoute(siteAddressIds)
+			getSitesRoute(siteAddressIds, returnCountTemp)
 		);
 		const siteAddressList: any[] = siteAddressResponse.data;
 

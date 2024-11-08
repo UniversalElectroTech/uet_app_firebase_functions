@@ -2,8 +2,12 @@ import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getSimproFolderJobsRoute } from "../config/routes";
 import { simproApiService } from "../../../../global/services/simpro_api/simproApiService";
 import { handleAxiosError } from "../../../../global/services/helper_functions/errorHandling";
+import {
+	getJobDetailsRoute,
+	getQuoteDetailsRoute,
+} from "../../../../global/services/simpro_api/config/routes";
 
-export async function getSimproFolderJobs(request: CallableRequest) {
+export async function getSimproFolderProjects(request: CallableRequest) {
 	// Check that the user is authenticated.
 	if (!request.auth) {
 		// Throwing an HttpsError so that the client gets the error details.
@@ -32,7 +36,29 @@ export async function getSimproFolderJobs(request: CallableRequest) {
 			getSimproFolderJobsRoute(employeeSimproId, dateThisWeek)
 		);
 
-		const responseData: any[] = jobResponse.data;
+		var responseData: any[] = jobResponse.data;
+
+		for (const schedule of responseData) {
+			const referenceParts = schedule["Reference"].toString().split("-");
+			const simproId = referenceParts.length > 0 ? referenceParts[0] : "";
+			const isQuote = "quote" == schedule["Type"];
+
+			if (isQuote) {
+				// GET quote details by ID via SimproAPI
+				const response = await simproApiService.get(
+					getQuoteDetailsRoute(simproId)
+				);
+
+				schedule.JobDetails = response.data;
+			} else {
+				// GET job details by ID via SimproAPI
+				const response = await simproApiService.get(
+					getJobDetailsRoute(simproId)
+				);
+
+				schedule.JobDetails = response.data;
+			}
+		}
 
 		return responseData;
 	} catch (error: any) {

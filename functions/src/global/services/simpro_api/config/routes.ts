@@ -7,6 +7,10 @@ export function getJobDetailsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
 }
 
+export function getQuoteDetailsRoute(simproQuoteId: string): string {
+	return `${BASE_URL}/quotes/${simproQuoteId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
+}
+
 export function getEmployeesRoute(): string {
 	return `${BASE_URL}/employees/?columns=ID,Name,PrimaryContact`;
 }

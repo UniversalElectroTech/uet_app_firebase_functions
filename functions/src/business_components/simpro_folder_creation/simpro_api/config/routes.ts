@@ -12,11 +12,19 @@ export function getSimproJobFoldersRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/folders/`;
 }
 
+export function getSimproQuoteFoldersRoute(simproQuoteId: string): string {
+	return `${BASE_URL}/quotes/${simproQuoteId}/attachments/folders/`;
+}
+
 // ====================================================================
 
 // POST ===============================================================
 export function createSimproJobFolderRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/folders/`;
+}
+
+export function createQuoteAttachmentsRoute(simproQuoteId: string): string {
+	return `${BASE_URL}/quotes/${simproQuoteId}/attachments/folders/`;
 }
 // ====================================================================
 
@@ -27,13 +35,27 @@ export function deleteSimproJobFolderRoute(
 ): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/folders/${folderId}`;
 }
+
+export function deleteSimproQuoteFolderRoute(
+	simproQuoteId: string,
+	folderId: string
+): string {
+	return `${BASE_URL}/quotes/${simproQuoteId}/attachments/folders/${folderId}`;
+}
 // ====================================================================
 
 // PATCH ==============================================================
-export function postSimproJobFolderNameRoute(
+export function updateSimproJobFolderNameRoute(
 	simproJobId: string,
 	folderId: string
 ): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/folders/${folderId}`;
+}
+
+export function updateSimproQuoteFolderNameRoute(
+	simproQuoteId: string,
+	folderId: string
+): string {
+	return `${BASE_URL}/quotes/${simproQuoteId}/attachments/folders/${folderId}`;
 }
 // ====================================================================

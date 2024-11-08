@@ -1,41 +1,41 @@
 import { CallableRequest, onCall } from "firebase-functions/v2/https";
-import { getSimproJobFolders } from "./getSimproJobFolders";
-import { getSimproFolderJobs } from "./getSimproFolderJobs";
-import { createSimproJobFolder } from "./createSimproJobFolder";
-import { postSimproJobFolder } from "./postSimproJobFolder";
-import { deleteSimproJobFolder } from "./deleteSimproJobFolder";
+import { getSimproProjectFolders } from "./getSimproProjectFolders";
+import { getSimproFolderProjects } from "./getSimproFolderProjects";
+import { createSimproProjectFolder } from "./createSimproProjectFolder";
+import { updateSimproProjectFolder } from "./updateSimproProjectFolder";
+import { deleteSimproProjectFolder } from "./deleteSimproProjectFolder";
 
-exports.getSimproFolderJobs = onCall(
+exports.getSimproFolderProjects = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await getSimproFolderJobs(request);
+		return await getSimproFolderProjects(request);
 	}
 );
 
-exports.getSimproJobFolders = onCall(
+exports.getSimproProjectFolders = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await getSimproJobFolders(request);
+		return await getSimproProjectFolders(request);
 	}
 );
 
-exports.createSimproJobFolder = onCall(
+exports.createSimproProjectFolder = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await createSimproJobFolder(request);
+		return await createSimproProjectFolder(request);
 	}
 );
 
-exports.postSimproJobFolder = onCall(
+exports.updateSimproProjectFolder = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await postSimproJobFolder(request);
+		return await updateSimproProjectFolder(request);
 	}
 );
 
-exports.deleteSimproJobFolder = onCall(
+exports.deleteSimproProjectFolder = onCall(
 	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
 	async (request: CallableRequest) => {
-		return await deleteSimproJobFolder(request);
+		return await deleteSimproProjectFolder(request);
 	}
 );

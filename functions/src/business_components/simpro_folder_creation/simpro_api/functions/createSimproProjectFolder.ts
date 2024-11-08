@@ -1,9 +1,12 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { handleAxiosError } from "../../../../global/services/helper_functions/errorHandling";
-import { createSimproJobFolderRoute } from "../config/routes";
+import {
+	createQuoteAttachmentsRoute,
+	createSimproJobFolderRoute,
+} from "../config/routes";
 import { simproApiService } from "../../../../global/services/simpro_api/simproApiService";
 
-export async function createSimproJobFolder(request: CallableRequest) {
+export async function createSimproProjectFolder(request: CallableRequest) {
 	if (!request.auth) {
 		throw new HttpsError(
 			"failed-precondition",
@@ -13,21 +16,33 @@ export async function createSimproJobFolder(request: CallableRequest) {
 
 	try {
 		const {
-			simproJobId,
+			simproId,
 			folderName,
-		}: { simproJobId: string; folderName: string } = request.data;
+			isQuote,
+		}: { simproId: string; folderName: string; isQuote: boolean } =
+			request.data;
 
-		if (!simproJobId || !folderName) {
+		if (!simproId || !folderName) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
 			);
 		}
 
-		const response = await simproApiService.post(
-			createSimproJobFolderRoute(simproJobId),
-			{ Name: folderName }
-		);
+		var response;
+
+		if (isQuote) {
+			response = await simproApiService.post(
+				createQuoteAttachmentsRoute(simproId),
+				{ Name: folderName }
+			);
+		} else {
+			response = await simproApiService.post(
+				createSimproJobFolderRoute(simproId),
+				{ Name: folderName }
+			);
+		}
+
 		return response.data;
 	} catch (error: any) {
 		return handleAxiosError(error);

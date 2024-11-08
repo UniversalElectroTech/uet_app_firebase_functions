@@ -1,9 +1,12 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { simproApiService } from "../../../../global/services/simpro_api/simproApiService";
 import { handleAxiosError } from "../../../../global/services/helper_functions/errorHandling";
-import { postSimproJobFolderNameRoute } from "../config/routes";
+import {
+	deleteSimproJobFolderRoute,
+	deleteSimproQuoteFolderRoute,
+} from "../config/routes";
 
-export async function postSimproJobFolder(request: CallableRequest) {
+export async function deleteSimproProjectFolder(request: CallableRequest) {
 	if (!request.auth) {
 		throw new HttpsError(
 			"failed-precondition",
@@ -13,24 +16,29 @@ export async function postSimproJobFolder(request: CallableRequest) {
 
 	try {
 		const {
-			simproJobId,
+			simproId,
 			folderId,
-			newFolderName,
-		}: { simproJobId: string; folderId: string; newFolderName: string } =
-			request.data;
+			isQuote,
+		}: { simproId: string; folderId: string; isQuote: string } = request.data;
 
-		if (!simproJobId || !folderId || !newFolderName) {
+		if (!simproId || !folderId) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
 			);
 		}
 
-		const response = await simproApiService.patch(
-			postSimproJobFolderNameRoute(simproJobId, folderId),
-			{ name: newFolderName }
-		);
-		return response.data;
+		if (isQuote) {
+			await simproApiService.delete(
+				deleteSimproQuoteFolderRoute(simproId, folderId)
+			);
+		} else {
+			await simproApiService.delete(
+				deleteSimproJobFolderRoute(simproId, folderId)
+			);
+		}
+
+		return { success: true };
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}

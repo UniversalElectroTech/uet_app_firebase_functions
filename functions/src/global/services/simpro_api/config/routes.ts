@@ -3,12 +3,53 @@ import { BASE_URL, DEFAULT_PAGE, DEFAULT_RETURN_COUNT } from "./config";
 // GET ================================================================
 export const getToken: string = "https://uet.simprosuite.com/oauth2/token";
 
+export function getScheduledJobsRoute(
+	employeeSimproId: string,
+	dateThisWeek: string
+): string {
+	return `${BASE_URL}/schedules/?Date=between(${dateThisWeek})&Staff.ID=${employeeSimproId}&Type=in(job)`;
+}
+
 export function getJobDetailsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
 }
 
 export function getQuoteDetailsRoute(simproQuoteId: string): string {
 	return `${BASE_URL}/quotes/${simproQuoteId}?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage`;
+}
+
+export function getJobsDetailsRoute(simproJobIds: Array<string>): string {
+	let simproIds: string = "";
+
+	for (let index = 0; index < simproJobIds.length; index++) {
+		const simproId: string = simproJobIds[index];
+
+		if (index < simproJobIds.length) {
+			simproIds = `${simproIds}${simproId}`;
+			if (index < simproJobIds.length - 1) {
+				simproIds += ",";
+			}
+		}
+	}
+
+	return `${BASE_URL}/jobs/?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage&ID=in(${simproIds})`;
+}
+
+export function getQuotesDetailsRoute(simproQuoteIds: Array<string>): string {
+	let simproIds: string = "";
+
+	for (let index = 0; index < simproQuoteIds.length; index++) {
+		const simproId: string = simproQuoteIds[index];
+
+		if (index < simproQuoteIds.length) {
+			simproIds = `${simproIds}${simproId}`;
+			if (index < simproQuoteIds.length - 1) {
+				simproIds += ",";
+			}
+		}
+	}
+
+	return `${BASE_URL}/quotes/?columns=ID,Name,Customer,Site,SiteContact,Notes,Stage&ID=in(${simproIds})`;
 }
 
 export function getEmployeesRoute(): string {
@@ -33,6 +74,10 @@ export function getSitesRoute(
 	page: number = DEFAULT_PAGE
 ): string {
 	return `${BASE_URL}/sites/?pageSize=${returnCount}&columns=ID,Address,PrimaryContact&ID=in(${siteAddressIds})`;
+}
+
+export function getSiteRoute(siteId: string): string {
+	return `${BASE_URL}/sites/${siteId}?columns=ID,Name,Address,PrimaryContact`;
 }
 // ====================================================================
 

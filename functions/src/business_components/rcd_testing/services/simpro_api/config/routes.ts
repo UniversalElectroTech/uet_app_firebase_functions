@@ -29,7 +29,7 @@ export function getRcdJobCustomersRoute(
 	returnCount: number = DEFAULT_RETURN_COUNT,
 	page: number = DEFAULT_PAGE
 ): string {
-	return `${BASE_URL}/jobs/?columns=Customer&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=in(Progress,Complete)`;
+	return `${BASE_URL}/jobs/?columns=Customer&CustomFields.CustomField.ID=${RCD_TEST_CUSTOM_FIELD_ID}&CustomFields.Value=Yes&Technicians.ID=${employeeSimproId}&Stage=in(Pending,Complete,Progress)`;
 }
 // ====================================================================
 

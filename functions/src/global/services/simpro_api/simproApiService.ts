@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { BASE_URL } from "./config/config";
-import { firebaseFunctionsService } from "../../firebaseFunctions/services/firebaseFunctionsServ";
+import { firebaseFunctionsService } from "../../firebase_functions/services/firebaseFunctionsService";
 
 class SimproApiService {
 	private static instance: SimproApiService;

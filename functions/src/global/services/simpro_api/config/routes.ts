@@ -60,8 +60,8 @@ export function getContractorsRoute(): string {
 	return `${BASE_URL}/contractors/?columns=ID,Name,PrimaryContact`;
 }
 
-export function getFilteredSuppliersRoute(supplierName: string): string {
-	return `${BASE_URL}/vendors/?Name=${supplierName}%25`;
+export function getFilteredCustomersRoute(customerName: string): string {
+	return `${BASE_URL}/vendors/?Name=${customerName}%25`;
 }
 
 export function getJobSectionsRoute(simproJobId: string): string {
@@ -99,6 +99,10 @@ export function postjobNoteRoute(simproJobId: string): string {
 
 export function postJobAttachmentsRoute(simproJobId: string): string {
 	return `${BASE_URL}/jobs/${simproJobId}/attachments/files/`;
+}
+
+export function postMultipleJobAttachmentsRoute(simproJobId: string): string {
+	return `${BASE_URL}/jobs/${simproJobId}/attachments/files/multiple/`;
 }
 
 export function postOneOffItemRoute(

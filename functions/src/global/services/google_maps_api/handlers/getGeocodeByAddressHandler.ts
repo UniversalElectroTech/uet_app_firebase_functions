@@ -2,9 +2,9 @@ import axios from "axios";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getGeocodeRoute } from "../config/routes";
 import { firebaseFunctionsService } from "../../../firebase_functions/services/firebaseFunctionsService";
+import { handleAxiosError } from "../../helper_functions/errorHandling";
 
 export async function getGeocodeByAddressHandler(request: CallableRequest) {
-	var address: string = "";
 	try {
 		// Check that the user is authenticated.
 		if (!request.auth) {
@@ -14,26 +14,22 @@ export async function getGeocodeByAddressHandler(request: CallableRequest) {
 			);
 		}
 
-		address = request.data.address;
+		const { address }: { address: string } = request.data;
 
+		// Check if all required parameters have been received
 		if (!address) {
-			throw new HttpsError("invalid-argument", "Address is null.");
+			throw new HttpsError(
+				"failed-precondition",
+				"Required parameters are missing."
+			);
 		}
 
 		const headers = {
 			NoAuthToken: "true",
 		};
-		await getGeocodeByAddress(address, headers);
+		return await getGeocodeByAddress(address, headers);
 	} catch (error: any) {
-		// Error occurred during geocoding
-		if (axios.isAxiosError(error)) {
-			throw new HttpsError(
-				"internal",
-				`Error getting coordinates for ${address}: ${error.message}`
-			);
-		} else {
-			throw new HttpsError("internal", `Unexpected error: ${error}`);
-		}
+		return handleAxiosError(error);
 	}
 }
 

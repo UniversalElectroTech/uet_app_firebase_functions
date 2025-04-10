@@ -2,8 +2,10 @@ import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { simproApiService } from "../simproApiService";
 import { getJobDetailsRoute } from "../config/routes";
 import { handleAxiosError } from "../../helper_functions/errorHandling";
+import { getSiteDetails } from "../../../../business_components/rcd_testing/services/simpro_api/handlers/getProgressJobsFunctionHandler";
+import { Job } from "../../../../business_components/rcd_testing/models/job";
 
-// Returns all RCD testing progress jobs from the SimproAPI
+// Returns the details of a job from the SimproAPI
 export async function getJobDetailsHandler(request: CallableRequest) {
 	try {
 		// Check that the user is authenticated.
@@ -30,19 +32,28 @@ export async function getJobDetailsHandler(request: CallableRequest) {
 			);
 		}
 
-		return await getJobDetails(simproJobId);
+		return await getSimproJob(simproJobId);
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}
 }
 
-export async function getJobDetails(simproJobId: string) {
-	// GET
+export async function getSimproJob(simproJobId: string): Promise<Job> {
+	// GET job details via SimproAPI
 	const jobResponse = await simproApiService.get(
 		getJobDetailsRoute(simproJobId)
 	);
 
-	const jobResponseData = jobResponse.data;
+	const jobData: any = jobResponse.data;
 
-	return jobResponseData;
+	// Extract site IDs
+	const siteId = jobData["Site"]["ID"].toString();
+
+	// Fetch site address
+	const siteAddressResponse = await getSiteDetails(siteId);
+	const siteAddressMap: any = siteAddressResponse[0];
+
+	const simproJob = Job.fromSimproMap(jobData, siteAddressMap);
+
+	return simproJob;
 }

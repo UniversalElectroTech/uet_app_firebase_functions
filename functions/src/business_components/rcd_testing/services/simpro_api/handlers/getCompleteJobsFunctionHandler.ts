@@ -1,8 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getRcdCompleteJobsRoute } from "../config/routes";
-import { getSitesRoute } from "../../../../../global/services/simpro_api/config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
+import { getSiteDetails } from "./getProgressJobsFunctionHandler";
 
 // Returns all RCD testing complete jobs from the SimproAPI
 export async function getCompleteJobsHandler(request: CallableRequest) {
@@ -88,10 +88,8 @@ async function getCompleteJobs(
 	const siteAddressIds: string = siteIds.join(",");
 
 	// GET job site information via SimproAPI
-	const siteAddressResponse = await simproApiService.get(
-		getSitesRoute(siteAddressIds)
-	);
-	const siteAddressList: any[] = siteAddressResponse.data;
+	const siteAddressResponse = await getSiteDetails(siteAddressIds, returnCount);
+	const siteAddressList: any[] = siteAddressResponse;
 
 	// Return a map with job data, result total and result count
 	const returnMap = {

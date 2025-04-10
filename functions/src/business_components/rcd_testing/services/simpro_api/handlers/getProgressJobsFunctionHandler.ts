@@ -89,10 +89,11 @@ async function getProgressJobs(
 	const siteAddressIds: string = siteIds.join(",");
 
 	// GET job site information via SimproAPI
-	const siteAddressResponse = await simproApiService.get(
-		getSitesRoute(siteAddressIds, returnCountTemp)
+	const siteAddressResponse = await getSiteDetails(
+		siteAddressIds,
+		returnCountTemp
 	);
-	const siteAddressList: any[] = siteAddressResponse.data;
+	const siteAddressList: any[] = siteAddressResponse;
 
 	// Return a map with job data, result total and result count
 	const returnMap = {
@@ -102,4 +103,16 @@ async function getProgressJobs(
 		resultCount: jobResponse.headers["result-count"],
 	};
 	return returnMap;
+}
+
+// New function to get site details
+export async function getSiteDetails(
+	siteAddressIds: string,
+	returnCountTemp: number = 250
+) {
+	// GET job site information via SimproAPI
+	const siteAddressResponse = await simproApiService.get(
+		getSitesRoute(siteAddressIds, returnCountTemp)
+	);
+	return siteAddressResponse.data;
 }

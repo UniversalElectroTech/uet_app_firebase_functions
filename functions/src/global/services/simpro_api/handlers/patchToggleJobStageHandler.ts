@@ -19,8 +19,13 @@ export async function patchToggleJobStageHandler(request: CallableRequest) {
 			simproJobId,
 			description,
 			currentStage,
-		}: { simproJobId: string; description: string; currentStage: string } =
-			request.data;
+			updateDescription,
+		}: {
+			simproJobId: string;
+			description: string;
+			currentStage: string;
+			updateDescription: boolean;
+		} = request.data;
 
 		// Check if all required parameters have been received
 		if (!simproJobId || !currentStage) {
@@ -30,7 +35,12 @@ export async function patchToggleJobStageHandler(request: CallableRequest) {
 			);
 		}
 
-		return await patchToggleJobStage(simproJobId, currentStage, description);
+		return await patchToggleJobStage(
+			simproJobId,
+			currentStage,
+			description,
+			updateDescription
+		);
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}
@@ -39,15 +49,24 @@ export async function patchToggleJobStageHandler(request: CallableRequest) {
 export async function patchToggleJobStage(
 	simproJobId: string,
 	currentStage: string,
-	description: string
+	description: string,
+	updateDescription: boolean
 ) {
 	// Determine the stage based on the 'currentStage' argument
 	const stage: string = currentStage === "Progress" ? "Complete" : "Progress";
 
-	const payload = {
-		Stage: stage,
-		Description: description,
-	};
+	let payload: any;
+
+	if (updateDescription) {
+		payload = {
+			Stage: stage,
+			Description: description,
+		};
+	} else {
+		payload = {
+			Stage: stage,
+		};
+	}
 
 	// Make API patch request
 	const response: AxiosResponse = await simproApiService.patch(

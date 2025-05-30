@@ -32,9 +32,9 @@ export async function updateRcdsHandler(request: CallableRequest) {
 				.collection("distribution_boards")
 				.doc(dbDocId)
 				.collection("rcds")
-				.doc(rcd.docId);
-			const { docId, ...rcdWithoutId } = rcd; // Remove docId from rcd
-			batch.update(rcdDocRef, rcdWithoutId);
+				.doc(rcd.firebaseDocId);
+			const { firebaseDocId, ...rcdWithoutFirebaseDocId } = rcd; // Remove firebaseDocId from rcd
+			batch.update(rcdDocRef, rcdWithoutFirebaseDocId);
 		});
 
 		await batch.commit();

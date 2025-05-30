@@ -1,6 +1,7 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import admin = require("firebase-admin");
 import { handleAxiosError } from "../../../../../../global/services/helper_functions/errorHandling";
+import { deleteDbImages } from "./deleteDbImagesHandler";
 
 export async function deleteDbHandler(request: CallableRequest) {
 	// Check that the user is authenticated.
@@ -33,13 +34,17 @@ export async function deleteDbHandler(request: CallableRequest) {
 		const docSnapshot = await dbDocRef.get();
 		const images = docSnapshot.get("images") || [];
 
-		// Delete each image from Firebase Storage
-		const deletePromises = images.map((imageUrl: string) => {
-			const imageRef = admin.storage().bucket().file(imageUrl);
-			return imageRef.delete();
-		});
+		await deleteDbImages(images);
 
-		await Promise.all(deletePromises);
+		// Delete the subcollection 'rcds' if it exists
+		const subCollectionRef = dbDocRef.collection("rcds");
+		const subCollectionSnapshot = await subCollectionRef.get();
+		const batch = admin.firestore().batch();
+		subCollectionSnapshot.forEach((doc) => {
+			batch.delete(doc.ref);
+		});
+		await batch.commit();
+
 		// Delete the distribution board document
 		await dbDocRef.delete();
 		return { success: true };

@@ -117,7 +117,7 @@ exports.getDbRcds = onCall(
 
 // Adds images to a distribution board in the SimproAPI
 exports.addDbImages = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	{ timeoutSeconds: 20, maxInstances: 5, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await addDbImagesHandler(request);
 	}
@@ -125,7 +125,7 @@ exports.addDbImages = onCall(
 
 // Deletes images from a distribution board in the SimproAPI
 exports.deleteDbImages = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	{ timeoutSeconds: 20, maxInstances: 5, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await deleteDbImagesHandler(request);
 	}
@@ -133,7 +133,7 @@ exports.deleteDbImages = onCall(
 
 // Returns a job from the SimproAPI
 exports.getJob = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	{ timeoutSeconds: 20, maxInstances: 5, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await getJobHandler(request);
 	}
@@ -141,7 +141,7 @@ exports.getJob = onCall(
 
 // Completes an RCD testing job in the SimproAPI
 exports.completeRcdJob = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	{ timeoutSeconds: 60, maxInstances: 5, enforceAppCheck: true },
 	async (request: CallableRequest) => {
 		return await postCompleteRcdJobHandler(request);
 	}

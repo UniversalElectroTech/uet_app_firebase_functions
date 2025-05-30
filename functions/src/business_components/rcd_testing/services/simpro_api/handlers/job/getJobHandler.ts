@@ -3,6 +3,7 @@ import admin = require("firebase-admin");
 import { handleAxiosError } from "../../../../../../global/services/helper_functions/errorHandling";
 import { Job } from "../../../../models/job";
 import { getSimproJob } from "../../../../../../global/services/simpro_api/handlers/getJobDetailsHandler";
+import { addDb } from "../db/createDbHandler";
 
 export async function getJobHandler(request: CallableRequest) {
 	if (!request.auth) {
@@ -80,7 +81,15 @@ async function createFirebaseJob(simproJobId: string): Promise<Job> {
 			.collection("rcd_test_jobs")
 			.add(job.toFirebaseMap());
 
-		await createFirstDistributionBoard(jobDocRef.id);
+		const newDb = {
+			name: "DB 1",
+			notes: "",
+			images: [],
+			testType: "pushButton",
+			orderId: 1,
+		};
+
+		await addDb(newDb, jobDocRef.id);
 
 		// Add firebasedocid to jobData
 		job = job.copyWith({ firebaseDocId: jobDocRef.id });
@@ -88,24 +97,5 @@ async function createFirebaseJob(simproJobId: string): Promise<Job> {
 		return job;
 	} catch (e) {
 		throw new Error(`Error creating job: ${e}`);
-	}
-
-	async function createFirstDistributionBoard(jobDocId: string) {
-		const newDb = {
-			firebaseDocId: "",
-			notes: "",
-			rcds: [],
-			images: [],
-			orderId: 1,
-			name: "DB 1",
-		};
-
-		const jobDocRef = admin
-			.firestore()
-			.collection("rcd_test_jobs")
-			.doc(jobDocId);
-		const dbDocRef = jobDocRef.collection("distribution_boards").doc();
-		await dbDocRef.set(newDb);
-		return dbDocRef.id;
 	}
 }

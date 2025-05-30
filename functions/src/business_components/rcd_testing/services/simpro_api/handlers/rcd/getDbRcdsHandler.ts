@@ -22,25 +22,29 @@ export async function getDbRcdsHandler(request: CallableRequest) {
 			);
 		}
 
-		const rcdsCollection = admin
-			.firestore()
-			.collection("rcd_test_jobs")
-			.doc(jobDocId)
-			.collection("distribution_boards")
-			.doc(dbDocId)
-			.collection("rcds");
-
-		const querySnapshot = await rcdsCollection.get();
-		const rcds: any[] = querySnapshot.docs.map((doc) => {
-			const rcdData = doc.data();
-			return { ...rcdData, docId: doc.id }; // Include the document ID
-		});
-
-		// Sorting the RCDs based on orderId
-		rcds.sort((a, b) => a.orderId - b.orderId);
+		const rcds = await getDbRcds(jobDocId, dbDocId);
 
 		return rcds;
 	} catch (error) {
 		return handleAxiosError(error);
 	}
+}
+
+export async function getDbRcds(jobDocId: string, dbDocId: string) {
+	const rcdsCollection = admin
+		.firestore()
+		.collection("rcd_test_jobs")
+		.doc(jobDocId)
+		.collection("distribution_boards")
+		.doc(dbDocId)
+		.collection("rcds");
+
+	// Fetching RCDs sorted by orderId directly from Firestore
+	const querySnapshot = await rcdsCollection.orderBy("orderId").get();
+	const rcds: any[] = querySnapshot.docs.map((doc) => {
+		const rcdData = doc.data();
+		return { ...rcdData, firebaseDocId: doc.id }; // Include the document ID
+	});
+
+	return rcds;
 }

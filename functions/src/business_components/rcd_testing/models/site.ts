@@ -15,13 +15,20 @@ export class Site {
 
 	static fromMap(data: any): Site {
 		const addressJson = data["Address"] || {};
+		const simproId = data["ID"] ?? "";
+		const address = addressJson["Address"] ?? "";
+		const city = addressJson["City"] ?? "";
+		const state = addressJson["State"] ?? "";
+		const postalCode = addressJson["PostalCode"] ?? "";
+		const country = addressJson["Country"] ?? "";
+
 		return new Site(
-			data["ID"].toString(),
-			addressJson["Address"].toString(),
-			addressJson["City"].toString(),
-			addressJson["State"].toString(),
-			addressJson["PostalCode"].toString(),
-			addressJson["Country"].toString(),
+			simproId,
+			address,
+			city,
+			state,
+			postalCode,
+			country,
 			SiteContact.fromMap(data["PrimaryContact"])
 		);
 	}

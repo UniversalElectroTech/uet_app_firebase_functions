@@ -11,8 +11,8 @@ import { calculateCustomerCost } from "../../../helper_functions/customer_cost_c
 import { postJobOneOffItem } from "../../../../../../global/services/simpro_api/handlers/postJobOneOffItemHandler";
 import { hNPerryMandurah } from "../../../helper_functions/customer_ids";
 import { updateJob } from "./postUpdateJobHandler";
-import { getImageData } from "../../../../../../global/services/firebase_storage_api/functions/get_image_data";
-import { postJobAttachments } from "../../../../../../global/services/simpro_api/handlers/postJobAttachmentsHandler";
+import { getImageData } from "../../../../../../global/services/firebase_storage_api/handlers/get_image_data";
+import { postMultipleJobAttachments } from "../../../../../../global/services/simpro_api/handlers/postJobAttachmentsHandler";
 import { Timestamp } from "firebase-admin/firestore";
 
 export async function postCompleteRcdJobHandler(request: CallableRequest) {
@@ -25,16 +25,17 @@ export async function postCompleteRcdJobHandler(request: CallableRequest) {
 
 	try {
 		const {
-			simproJobId,
+			parentSimproJobId,
 			employeeName,
 			pdfReport,
 		}: {
-			simproJobId: string;
+			parentSimproJobId: string;
 			employeeName: string;
 			pdfReport: string;
+			splitJobPdfReport?: string;
 		} = request.data;
 
-		if (!simproJobId || !employeeName || !pdfReport) {
+		if (!parentSimproJobId || !employeeName || !pdfReport) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
@@ -42,7 +43,7 @@ export async function postCompleteRcdJobHandler(request: CallableRequest) {
 		}
 
 		const updatedJob = await toggleJobCompletion(
-			simproJobId,
+			parentSimproJobId,
 			employeeName,
 			pdfReport
 		);
@@ -59,85 +60,71 @@ async function toggleJobCompletion(
 	pdfReport: string
 ) {
 	try {
-		const job = await getOrCreateRcdTestingJob(simproJobId);
+		const parentJob = await getOrCreateRcdTestingJob(simproJobId);
+		const parentDbs = await getDbs(parentJob.firebaseDocId);
 
-		const dbs = await getDbs(job.firebaseDocId);
+		const newStage = parentJob.stage === "Complete" ? "Progress" : "Complete";
+		const newIsComplete = parentJob.stage === "Complete" ? false : true;
+		const subject = `RCD Testing Notes - Submitted By ${employeeName}`;
+		const sharedJobSiteAddress = parentJob.getAddress();
+		let updateDescription = true;
+		let jobs: { job: Job; dbs: DistributionBoard[] }[] = [];
 
-		const newStage = job.stage === "Complete" ? "Progress" : "Complete";
-		const newIsComplete = job.stage === "Complete" ? false : true;
+		let jobAttachments = await uploadImagesAsAttachments(parentDbs);
 
-		let sharedJobSiteAddress = "";
-		let jobs = [{ job: job, dbs }];
-		let parentDbs: any[] = [];
+		const parentJobPdfAttachment = await uploadPdfReportAsAttachment(
+			parentJob,
+			parentDbs,
+			employeeName,
+			pdfReport
+		);
+		jobAttachments.push(parentJobPdfAttachment);
 
-		if (job.isSplitJob) {
-			const splitJobSimproId = job.splitJobDetails?.simproId!;
+		jobs.push({ job: parentJob, dbs: parentDbs });
 
-			const splitJob = await getOrCreateRcdTestingJob(splitJobSimproId);
-
-			const splitJobDbs = await getDbs(splitJob.firebaseDocId);
-
-			jobs.push({ job: splitJob, dbs: splitJobDbs });
-			sharedJobSiteAddress = splitJob.getAddress();
-
-			if (job.isSplitJobParent) {
-				parentDbs = dbs;
-			} else {
-				parentDbs = splitJobDbs;
-			}
+		if (parentJob.isSplitJob) {
+			const splitJob = await getSplitJob(parentJob.splitJobDetails!.simproId!);
+			jobs.push({ job: splitJob, dbs: parentDbs });
 		}
 
-		for (const data of jobs) {
-			const job = data.job;
-
+		for (const job of jobs) {
+			// Create job description
 			const jobDescription = createJobDescription(
-				job,
-				parentDbs,
+				job.job,
+				job.dbs,
 				sharedJobSiteAddress
 			);
 
-			let updateDescription = true;
-
-			if (job.stage !== "Complete") {
-				await uploadPdfReportAsAttachment(
-					job,
-					parentDbs,
-					employeeName,
-					pdfReport
-				);
-				await uploadImagesAsAttachments(job.simproId, parentDbs);
+			// Post one-off item to Simpro
+			if (newIsComplete) {
 				await jobOneOffItem(
-					job.customerId,
-					job.simproId,
+					job.job.customerId,
+					job.job.simproId,
 					parentDbs,
-					job.isSplitJob
+					job.job.isSplitJob
 				);
-
-				const subject = `RCD Testing Notes - Submitted By ${employeeName}`;
-
-				if (job.customerId !== hNPerryMandurah) {
-					await addJobNote(job.simproId, subject, jobDescription);
+				// If not HN Perry Mandurah, add job note
+				if (parentJob.customerId != hNPerryMandurah) {
+					await addJobNote(parentJob.simproId, subject, jobDescription);
 					updateDescription = false;
 				}
 			}
 
+			// Upload all attachments in one go to Simpro
+			await uploadAttachments(job.job.simproId, jobAttachments);
+
 			await toggleJobStage(
-				job.simproId,
-				job.stage,
+				job.job.simproId,
+				job.job.stage,
 				jobDescription,
 				updateDescription
 			);
 
-			const updatedJob = job.copyWith({
-				stage: newStage,
-				jobComplete: newIsComplete,
-				testCompleteDate: Timestamp.now(),
-			});
-
-			await updateJob(updatedJob);
+			// Update the job in the database
+			await updateJob(job.job);
 		}
 
-		const updatedJob = job.copyWith({
+		const updatedJob = parentJob.copyWith({
 			stage: newStage,
 			jobComplete: newIsComplete,
 			testCompleteDate: Timestamp.now(),
@@ -149,61 +136,59 @@ async function toggleJobCompletion(
 	}
 }
 
-// Function to upload PDF report as attachment
+async function getSplitJob(splitJobSimproId: string) {
+	let splitJob = await getOrCreateRcdTestingJob(splitJobSimproId);
+	return splitJob;
+}
+
+async function uploadAttachments(simproJobId: string, attachments: any[]) {
+	const payload = attachments.map((attachment) => ({
+		Filename: attachment.Filename,
+		Base64Data: attachment.Base64Data,
+		Email: true,
+		Public: true,
+	}));
+
+	await postMultipleJobAttachments(simproJobId, payload);
+}
+
 async function uploadPdfReportAsAttachment(
 	job: Job,
 	dbs: DistributionBoard[],
 	employeeName: string,
 	pdfReport: string
 ) {
-	try {
-		const reportFileName = `${job.name.replace(
-			/[\/\\]/g,
-			","
-		)} - RCD Test Report.pdf`;
+	const reportFileName = `${job.name.replace(
+		/[\/\\]/g,
+		","
+	)} - RCD Test Report.pdf`;
+	const pdfPayload = {
+		Filename: reportFileName,
+		Base64Data: pdfReport,
+		Email: true,
+		Public: true,
+	};
 
-		//TO BE LOOKED AT ANOTHER TIME
-		// const report = await generatePdfReport({
-		// 	job: job,
-		// 	dbs: dbs,
-		// 	employeeName: employeeName,
-		// });
-		// const base64Data = Buffer.from(report).toString("base64");
-
-		const pdfPayload = {
-			Filename: reportFileName,
-			Base64Data: pdfReport,
-			Email: true,
-			Public: true,
-		};
-
-		await postJobAttachments(job.simproId, pdfPayload);
-	} catch (e) {
-		throw new Error(`Error uploading PDF report: ${e}`);
-	}
+	return pdfPayload; // Return the payload instead of uploading immediately
 }
 
-// Function to upload images as attachments
-async function uploadImagesAsAttachments(
-	simproJobId: string,
-	dbs: DistributionBoard[]
-) {
-	try {
-		for (const db of dbs) {
-			for (const [index, image] of db.images.entries()) {
-				const base64Data = await getImageData(image);
-				const attachment = {
-					Filename: `${db.name} - Image ${index + 1}.jpeg`,
-					Base64Data: base64Data,
-					Email: true,
-					Public: true,
-				};
-				await postJobAttachments(simproJobId, attachment);
-			}
+async function uploadImagesAsAttachments(dbs: DistributionBoard[]) {
+	const imageAttachments = [];
+
+	for (const db of dbs) {
+		for (const [index, image] of db.images.entries()) {
+			const base64Data = await getImageData(image);
+			const attachment = {
+				Filename: `${db.name} - Image ${index + 1}.jpeg`,
+				Base64Data: base64Data,
+				Email: true,
+				Public: true,
+			};
+			imageAttachments.push(attachment); // Collect image attachments
 		}
-	} catch (e) {
-		throw new Error(`Error uploading images: ${e}`);
 	}
+
+	return imageAttachments; // Return all collected image attachments
 }
 
 // Function to post one-off item to Simpro job
@@ -288,28 +273,3 @@ function createJobDescription(
 
 	return description;
 }
-
-// async function postCompleteRcdJob(
-// 	simproJobId: string,
-// 	employeeName: string,
-// 	job: Map<string, any>,
-// 	payload: Map<string, any>,
-// 	updatedJob: any
-// ) {
-// 	await simproApiService.post(
-// 		postMultipleJobAttachmentsRoute(simproJobId),
-// 		payload
-// 	);
-
-// 	const jobResponse = await simproApiService.get(
-// 		getJobDetailsRoute(simproJobId)
-// 	);
-// 	const jobMap: any = jobResponse.data;
-
-// 	const siteId = jobMap["Site"]["ID"].toString();
-
-// 	const siteAddressResponse = await simproApiService.get(getSitesRoute(siteId));
-// 	const siteAddressMap: any = siteAddressResponse.data[0];
-
-// 	return { jobData: jobMap, siteData: siteAddressMap, updatedJob };
-// }

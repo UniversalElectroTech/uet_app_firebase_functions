@@ -12,12 +12,12 @@ export class Rcd {
 
 	static fromFirebaseMap(map: any): Rcd {
 		return new Rcd(
-			map["docId"],
+			map["firebaseDocId"],
 			map["name"],
 			map["note"],
 			map["passed"] ?? false,
 			map["isTestable"] ?? true,
-			map["id"],
+			map["orderId"],
 			map["tripCurrent"] ? parseFloat(map["tripCurrent"]) : undefined,
 			map["tripTime"] ? parseFloat(map["tripTime"]) : undefined
 		);
@@ -25,12 +25,12 @@ export class Rcd {
 
 	toFirebaseMap(): any {
 		return {
-			docId: this.firebaseDocId,
+			firebaseDocId: this.firebaseDocId,
 			name: this.name,
 			note: this.note,
 			passed: this.isPassed,
 			isTestable: this.isTestable,
-			id: this.orderId,
+			orderId: this.orderId,
 			tripCurrent: this.tripCurrent,
 			tripTime: this.tripTime,
 		};

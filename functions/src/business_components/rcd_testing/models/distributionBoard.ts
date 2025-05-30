@@ -36,15 +36,15 @@ export class DistributionBoard {
 			rcds,
 			dbData["notes"],
 			dbData["testType"] || TestType.PushButton,
-			dbData["docId"],
-			dbData["id"]
+			dbData["firebaseDocId"],
+			dbData["orderId"]
 		);
 	}
 
 	toFirebaseMap(): any {
 		return {
-			docId: this.firebaseDocId,
-			id: this.orderId,
+			firebaseDocId: this.firebaseDocId,
+			orderId: this.orderId,
 			name: this.name,
 			notes: this.notes,
 			images: this.images,

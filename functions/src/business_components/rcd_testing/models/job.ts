@@ -20,7 +20,8 @@ export class Job {
 		public testGroup: string,
 		public isSplitJob: boolean,
 		public isSplitJobParent: boolean,
-		public splitJobDetails: SplitJobDetails | null
+		public splitJobDetails: SplitJobDetails | null,
+		public geocode: { latitude: number; longitude: number } | null
 	) {}
 
 	// ... existing code ...
@@ -42,7 +43,7 @@ export class Job {
 		}
 
 		return new Job(
-			jobData["docId"],
+			jobData["firebaseDocId"],
 			jobData["ID"].toString(),
 			jobData["Name"].toString(),
 			jobData["Customer"]["ID"].toString(),
@@ -56,6 +57,7 @@ export class Job {
 			testGroup,
 			false,
 			false,
+			null,
 			null
 		);
 	}
@@ -107,7 +109,8 @@ export class Job {
 			map["isSplitJobParent"],
 			map["splitJobDetails"]
 				? SplitJobDetails.fromFirebaseMap(map["splitJobDetails"])
-				: null
+				: null,
+			null
 		);
 	}
 
@@ -142,6 +145,7 @@ export class Job {
 		isSplitJob?: boolean;
 		isSplitJobParent?: boolean;
 		splitJobDetails?: SplitJobDetails | null;
+		geocode?: { latitude: number; longitude: number } | null;
 	}): Job {
 		return new Job(
 			updates.firebaseDocId ?? this.firebaseDocId,
@@ -158,7 +162,8 @@ export class Job {
 			updates.testGroup ?? this.testGroup,
 			updates.isSplitJob ?? this.isSplitJob,
 			updates.isSplitJobParent ?? this.isSplitJobParent,
-			updates.splitJobDetails ?? this.splitJobDetails
+			updates.splitJobDetails ?? this.splitJobDetails,
+			updates.geocode ?? this.geocode
 		);
 	}
 
@@ -205,7 +210,8 @@ export class Job {
 			"", // testGroup
 			false, // isSplitJob
 			false, // isSplitJobParent
-			null // splitJobDetails
+			null, // splitJobDetails
+			null // geocode
 		);
 	}
 }

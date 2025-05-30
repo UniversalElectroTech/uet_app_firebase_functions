@@ -2,6 +2,7 @@ import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { simproApiService } from "../simproApiService";
 import { handleAxiosError } from "../../helper_functions/errorHandling";
 import { getJobsDetailsRoute, getScheduledJobsRoute } from "../config/routes";
+import { getEmployeeFromFirebase } from "../../firebase_firestore_api/handlers/getEmployeeHandler";
 
 export async function getScheduledJobsHandler(request: CallableRequest) {
 	try {
@@ -14,17 +15,15 @@ export async function getScheduledJobsHandler(request: CallableRequest) {
 			);
 		}
 
-		const { employeeSimproId }: { employeeSimproId: string } = request.data;
+		const employeeFirebaseDocId = request.auth.uid;
 
-		// Check if all required parameters have been received
-		if (!employeeSimproId) {
-			throw new HttpsError(
-				"failed-precondition",
-				"Required parameters are missing."
-			);
+		const employee = await getEmployeeFromFirebase(employeeFirebaseDocId);
+
+		if (!employee) {
+			throw new HttpsError("failed-precondition", "Employee not found.");
 		}
 
-		return await getScheduledJobs(employeeSimproId);
+		return await getScheduledJobs(employee.simproId);
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}

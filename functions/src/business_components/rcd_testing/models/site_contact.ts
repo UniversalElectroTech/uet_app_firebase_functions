@@ -11,13 +11,30 @@ export class SiteContact {
 	static empty = new SiteContact("", "", "", "", "", "");
 
 	static fromMap(json: any): SiteContact {
+		let simproId = "";
+		let givenName = "";
+		let familyName = "";
+		let email = "";
+		let workPhone = "";
+		let cellPhone = "";
+
+		if (json["Contact"]) {
+			simproId = json["Contact"]["ID"] ?? "";
+			givenName = json["Contact"]["GivenName"] ?? "";
+			familyName = json["Contact"]["FamilyName"] ?? "";
+			email = json["Contact"]["Email"] ?? "";
+		}
+
+		workPhone = json["WorkPhone"] ?? "";
+		cellPhone = json["CellPhone"] ?? "";
+
 		return new SiteContact(
-			json["Contact"]["ID"].toString(),
-			json["Contact"]["GivenName"].toString(),
-			json["Contact"]["FamilyName"].toString(),
-			json["Contact"]["Email"].toString(),
-			json["WorkPhone"].toString(),
-			json["CellPhone"].toString()
+			simproId,
+			givenName,
+			familyName,
+			email,
+			workPhone,
+			cellPhone
 		);
 	}
 

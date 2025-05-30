@@ -1,7 +1,9 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
-import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
-import { getCctvReportJobsRoute } from "../config/routes";
+import { getFirestore } from "firebase-admin/firestore";
+import { getSimproJob } from "../../../../../global/services/simpro_api/handlers/getJobDetailsHandler";
+import { CctvJob } from "../../../models/cctvJob";
+import { createCctvReport } from "./createCctvReportHandler";
 
 export async function getCctvJobDetailsHandler(request: CallableRequest) {
 	// Check that the user is authenticated.
@@ -14,29 +16,64 @@ export async function getCctvJobDetailsHandler(request: CallableRequest) {
 	}
 
 	try {
-		const { userSimproId }: { userSimproId: string } = request.data;
+		const { simproId }: { simproId: string } = request.data;
 
 		// Check if all required parameters have been received
-		if (!userSimproId) {
+		if (!simproId) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
 			);
 		}
 
-		return getCctvJobDetails(userSimproId);
+		const userId = request.auth.uid;
+
+		const cctvReport = await getOrCreateCctvReportDetails(simproId, userId);
+
+		return cctvReport;
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}
 }
 
-async function getCctvJobDetails(userSimproId: string) {
+async function getOrCreateCctvReportDetails(simproId: string, userId: string) {
+	const db = getFirestore();
+	const reportRef = db
+		.collection("cctv_reports")
+		.where("simproId", "==", simproId); // Updated to remove doc() for querying
+
+	const reportSnapshot = await reportRef.get(); // Changed to reportSnapshot for clarity
+
+	if (reportSnapshot.empty) {
+		// Check if no reports exist
+		const cctvReport = await createCctvReport(simproId, userId);
+		return cctvReport;
+	}
+
+	const reportData = reportSnapshot.docs[0].data(); // Get the first document's data
+
+	if (!reportData) {
+		const cctvReport = await createCctvReport(simproId, userId);
+		return cctvReport;
+	}
+
+	let cctvJob = CctvJob.fromMap(reportData);
+
 	// GET job details by ID via SimproAPI
-	const jobResponse = await simproApiService.get(
-		getCctvReportJobsRoute(userSimproId)
-	);
+	const jobResponse = await getSimproJob(simproId);
 
-	const responseData: any[] = jobResponse.data;
+	cctvJob = cctvJob.copyWith({
+		name: jobResponse.name,
+		address: jobResponse.getAddress(),
+		simproId: simproId,
+	});
 
-	return responseData;
+	const reportDocRef = reportSnapshot.docs[0].ref; // Get the first document's data
+
+	// Update the report with the provided updates
+	await reportDocRef.update(cctvJob.toFirebaseMap());
+
+	cctvJob.firebaseId = reportSnapshot.docs[0].id;
+
+	return cctvJob.toFrontendMap();
 }

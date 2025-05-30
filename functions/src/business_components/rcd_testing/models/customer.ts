@@ -4,10 +4,10 @@ export class Customer {
 	static empty = new Customer("", "");
 
 	static fromMap(customerData: any): Customer {
-		const simproId = customerData["ID"].toString();
-		const companyName = customerData["CompanyName"];
-		const givenName = customerData["GivenName"];
-		const familyName = customerData["FamilyName"];
+		const simproId = customerData["ID"] ?? "";
+		const companyName = customerData["CompanyName"] ?? "";
+		const givenName = customerData["GivenName"] ?? "";
+		const familyName = customerData["FamilyName"] ?? "";
 
 		let name = "";
 

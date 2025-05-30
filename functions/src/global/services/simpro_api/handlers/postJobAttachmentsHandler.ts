@@ -1,5 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { postJobAttachmentsRoute } from "../config/routes";
+import {
+	postJobAttachmentsRoute,
+	postMultipleJobAttachmentsRoute,
+} from "../config/routes";
 import { simproApiService } from "../simproApiService";
 import { handleAxiosError } from "../../helper_functions/errorHandling";
 import { AxiosResponse } from "axios";
@@ -38,6 +41,19 @@ export async function postJobAttachments(simproJobId: string, payload: any) {
 	// Make API post request
 	const response: AxiosResponse = await simproApiService.post(
 		postJobAttachmentsRoute(simproJobId),
+		payload
+	);
+
+	return response.data;
+}
+
+export async function postMultipleJobAttachments(
+	simproJobId: string,
+	payload: any
+) {
+	// Make API post request
+	const response: AxiosResponse = await simproApiService.post(
+		postMultipleJobAttachmentsRoute(simproJobId),
 		payload
 	);
 

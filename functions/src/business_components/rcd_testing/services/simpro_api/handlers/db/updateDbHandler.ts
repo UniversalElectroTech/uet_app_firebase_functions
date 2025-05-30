@@ -27,12 +27,12 @@ export async function updateDbHandler(request: CallableRequest) {
 			.collection("rcd_test_jobs")
 			.doc(jobDocId)
 			.collection("distribution_boards")
-			.doc(db.docId);
+			.doc(db.firebaseDocId);
 
-		// Remove db.docId before updating
-		const { docId, ...dbWithoutId } = db; // Remove docId from db
+		// Remove db.firebaseDocId before updating
+		const { firebaseDocId, ...dbWithoutFirebaseDocId } = db; // Remove firebaseDocId from db
 
-		await dbDocRef.update(dbWithoutId);
+		await dbDocRef.update(dbWithoutFirebaseDocId);
 		return { success: true };
 	} catch (error) {
 		return handleAxiosError(error);

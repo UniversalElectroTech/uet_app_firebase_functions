@@ -31,13 +31,33 @@ export async function addRcdsHandler(request: CallableRequest) {
 			.doc(dbDocId)
 			.collection("rcds");
 
+		// Retrieve existing RCDs to determine the next orderId
+		const existingRcdsSnapshot = await rcdCollectionRef
+			.orderBy("orderId", "desc")
+			.limit(1)
+			.get();
+		let nextOrderId = 0; // Initialize nextOrderId
+
+		if (!existingRcdsSnapshot.empty) {
+			const lastRcd = existingRcdsSnapshot.docs[0].data(); // Get the last RCD
+			nextOrderId = lastRcd.orderId + 1; // Set nextOrderId to last orderId + 1
+		}
+
 		const addedRcds: any[] = []; // To store added RCDs
 
 		rcds.forEach((rcd) => {
-			const { docId, ...rcdWithoutId } = rcd; // Remove docId from rcd
 			const rcdDocRef = rcdCollectionRef.doc(); // Create a new document reference
-			batch.set(rcdDocRef, rcdWithoutId); // Use rcd without docId
-			addedRcds.push({ ...rcdWithoutId, docId: rcdDocRef.id }); // Store the added RCD with its ID
+			const { firebaseDocId, ...rcdWithoutFirebaseDocId } = rcd; // Remove firebaseDocId from rcd
+			nextOrderId++; // Set the next orderId
+			batch.set(rcdDocRef, {
+				...rcdWithoutFirebaseDocId,
+				orderId: nextOrderId,
+			}); // Use rcd without firebaseDocId and set orderId
+			addedRcds.push({
+				...rcd,
+				firebaseDocId: rcdDocRef.id,
+				orderId: nextOrderId,
+			}); // Store the added RCD with its ID and orderId
 		});
 
 		await batch.commit();

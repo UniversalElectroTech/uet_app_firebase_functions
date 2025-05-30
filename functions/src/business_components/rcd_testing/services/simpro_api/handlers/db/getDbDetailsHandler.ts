@@ -34,7 +34,7 @@ export async function getDbDetailsHandler(request: CallableRequest) {
 			return null; // Distribution board not found
 		}
 
-		return { ...docSnapshot.data(), docId: dbDocId }; // Return the distribution board data
+		return { ...docSnapshot.data(), firebaseDocId: dbDocId }; // Return the distribution board data
 	} catch (error) {
 		return handleAxiosError(error);
 	}

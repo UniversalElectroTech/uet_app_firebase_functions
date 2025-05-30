@@ -24,12 +24,12 @@ function calculateHnPerryCost(
 ): number {
 	let totalCost = 0;
 
-	if (costedRcds <= 10) {
-		totalCost = 91; // Base cost for the first 10 RCDs
-	} else {
-		const additionalRcds = costedRcds - 10;
-		totalCost = 91 + Math.floor(additionalRcds / 10) * 50; // Calculate cost for additional RCDs
-	}
+	// Base cost for the first 10 RCDs
+	const baseCost = 91;
+
+	// Calculate cost for additional RCDs
+	const extraBlocks = Math.ceil((costedRcds - 10) / 10);
+	totalCost = baseCost + (costedRcds > 10 ? extraBlocks * 50 : 0);
 
 	// Apply cost cap if total cost exceeds $199 per tenancy
 	if (totalCost > 199) {

@@ -1,8 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { CallableRequest } from "firebase-functions/v2/https";
 import admin = require("firebase-admin");
-// import { storage } from "firebase-admin";
-const { getStorage } = require("firebase-admin/storage");
 import { handleAxiosError } from "../../../../../../global/services/helper_functions/errorHandling";
 import { FieldValue } from "firebase-admin/firestore";
 
@@ -26,23 +24,6 @@ export async function deleteDbImagesHandler(request: CallableRequest) {
 			);
 		}
 
-		const storage = getStorage();
-
-		// Delete images from Firebase Storage
-		const deletePromises = imageUrls.map(async (imageUrl) => {
-			const decodedImageUrls = decodeURIComponent(imageUrl);
-			const filePath = decodedImageUrls.split("/o/")[1].split("?")[0];
-
-			// Delete the file from Firebase Storage
-			try {
-				await storage.bucket().file(filePath).delete();
-			} catch (error) {
-				// Continue to the next image URL
-			}
-		});
-
-		await Promise.all(deletePromises);
-
 		// Remove each image URL from the 'images' array in Firestore
 		const dbDocRef = admin
 			.firestore()
@@ -57,4 +38,22 @@ export async function deleteDbImagesHandler(request: CallableRequest) {
 	} catch (error) {
 		return handleAxiosError(error);
 	}
+}
+
+export async function deleteDbImages(imageUrls: string[]) {
+	const storage = admin.storage();
+	// Delete images from Firebase Storage
+	const deletePromises = imageUrls.map(async (imageUrl) => {
+		const decodedImageUrls = decodeURIComponent(imageUrl);
+		const filePath = decodedImageUrls.split("/o/")[1].split("?")[0];
+
+		// Delete the file from Firebase Storage
+		try {
+			await storage.bucket().file(filePath).delete();
+		} catch (error) {
+			// Continue to the next image URL
+		}
+	});
+
+	await Promise.all(deletePromises);
 }

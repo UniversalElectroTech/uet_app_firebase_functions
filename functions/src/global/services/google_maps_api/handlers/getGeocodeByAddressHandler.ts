@@ -24,16 +24,16 @@ export async function getGeocodeByAddressHandler(request: CallableRequest) {
 			);
 		}
 
-		const headers = {
-			NoAuthToken: "true",
-		};
-		return await getGeocodeByAddress(address, headers);
+		return await getGeocodeByAddress(address);
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}
 }
 
-async function getGeocodeByAddress(address: string, headers: object) {
+export async function getGeocodeByAddress(address: string) {
+	const headers = {
+		NoAuthToken: "true",
+	};
 	const apiKey = firebaseFunctionsService.googleMapsKey; // Make sure to set this in your environment variables
 
 	const encodedAddress = encodeURIComponent(address);

@@ -106,11 +106,11 @@ export function postMultipleJobAttachmentsRoute(simproJobId: string): string {
 }
 
 export function postOneOffItemRoute(
-	jobId: string,
+	simproJobId: string,
 	sectionId: string,
 	costCenterId: string
 ): string {
-	return `${BASE_URL}/jobs/${jobId}/sections/${sectionId}/costCenters/${costCenterId}/oneOffs/`;
+	return `${BASE_URL}/jobs/${simproJobId}/sections/${sectionId}/costCenters/${costCenterId}/oneOffs/`;
 }
 // ====================================================================
 

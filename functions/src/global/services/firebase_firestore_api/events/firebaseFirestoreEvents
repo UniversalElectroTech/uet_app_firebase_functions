@@ -1,0 +1,11 @@
+import { onCall } from "firebase-functions/v2/https";
+import { CallableRequest } from "firebase-functions/v2/https";
+import { getEmployeeHandler } from "../handlers/getEmployeeHandler";
+
+// Returns all scheduled jobs for employee from the SimproAPI
+exports.getEmployee = onCall(
+	{ timeoutSeconds: 10, maxInstances: 10, enforceAppCheck: true },
+	async (request: CallableRequest) => {
+		return await getEmployeeHandler(request);
+	}
+);

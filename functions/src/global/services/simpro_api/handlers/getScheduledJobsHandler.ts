@@ -82,14 +82,21 @@ function _extractSimproId(reference: string): string {
 // Helper function to get the current week's dates in the required format
 function _getCurrentWeekDates(): string {
 	const now = new Date();
-	const dayOfWeek = now.getDay(); // 0 (Sun) to 6 (Sat)
 	const monday = new Date(now);
 	const sunday = new Date(now);
 
-	// Calculate Monday (start of the week)
-	monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-	// Calculate Sunday (end of the week)
-	sunday.setDate(now.getDate() + ((7 - dayOfWeek) % 7));
+	// Get current day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+	const currentDay = now.getDay();
+
+	// Calculate days to subtract to get to Monday
+	const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+
+	// Calculate days to add to get to Sunday
+	const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
+
+	// Set dates
+	monday.setDate(now.getDate() - daysToMonday);
+	sunday.setDate(now.getDate() + daysToSunday);
 
 	// Format dates as "YYYY-MM-DD"
 	const formatDate = (date: Date) => date.toISOString().split("T")[0];

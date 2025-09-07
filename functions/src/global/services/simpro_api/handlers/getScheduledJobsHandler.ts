@@ -85,8 +85,29 @@ function _getCurrentWeekDates(): string {
 	const monday = new Date(now);
 	const sunday = new Date(now);
 
+	const perthDateParts = new Intl.DateTimeFormat("en-AU", {
+		timeZone: "Australia/Perth",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	}).formatToParts(now);
+
+	const parts: { [key: string]: string } = {};
+	perthDateParts.forEach(({ type, value }) => {
+		if (type !== "literal") {
+			parts[type] = value;
+		}
+	});
+
+	// Build a date string in ISO format using Perth's local date and time
+	const perthDateString = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+	const perthDate = new Date(perthDateString);
+
 	// Get current day (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-	const currentDay = now.getDay();
+	const currentDay = perthDate.getDay();
 
 	// Calculate days to subtract to get to Monday
 	const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
@@ -95,8 +116,8 @@ function _getCurrentWeekDates(): string {
 	const daysToSunday = currentDay === 0 ? 0 : 7 - currentDay;
 
 	// Set dates
-	monday.setDate(now.getDate() - daysToMonday);
-	sunday.setDate(now.getDate() + daysToSunday);
+	monday.setDate(perthDate.getDate() - daysToMonday);
+	sunday.setDate(perthDate.getDate() + daysToSunday);
 
 	// Format dates as "YYYY-MM-DD"
 	const formatDate = (date: Date) => date.toISOString().split("T")[0];

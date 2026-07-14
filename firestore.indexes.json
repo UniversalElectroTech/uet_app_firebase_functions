@@ -1,0 +1,22 @@
+{
+	"indexes": [
+		{
+			"collectionGroup": "risk_assessments",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "createdBy", "order": "ASCENDING" },
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "dateCreated", "order": "DESCENDING" }
+			]
+		},
+		{
+			"collectionGroup": "risk_assessments",
+			"queryScope": "COLLECTION",
+			"fields": [
+				{ "fieldPath": "status", "order": "ASCENDING" },
+				{ "fieldPath": "dateCreated", "order": "DESCENDING" }
+			]
+		}
+	],
+	"fieldOverrides": []
+}

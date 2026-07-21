@@ -1,4 +1,4 @@
-import { SecretParam } from "firebase-functions/lib/params/types";
+import { SecretParam } from "firebase-functions/params";
 
 // GET ================================================================
 export function getGeocodeRoute(

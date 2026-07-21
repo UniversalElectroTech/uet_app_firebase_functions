@@ -1,6 +1,5 @@
 import * as admin from "firebase-admin";
-import { SecretParam } from "firebase-functions/lib/params/types";
-import { defineSecret } from "firebase-functions/params";
+import { SecretParam, defineSecret } from "firebase-functions/params";
 import { setGlobalOptions } from "firebase-functions/v2/options";
 
 class FirebaseFunctionsService {

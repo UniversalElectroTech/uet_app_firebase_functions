@@ -11,7 +11,7 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 		);
 	}
 
-	const { firebaseId, pdfReport, gpsCoords } = request.data;
+	const { firebaseId, pdfReport, gpsCoords, completedAt } = request.data;
 
 	if (!firebaseId || !pdfReport) {
 		throw new HttpsError(
@@ -25,6 +25,17 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 			"failed-precondition",
 			"GPS coordinates are required to complete a risk assessment."
 		);
+	}
+
+	// Prefer the device completion time so "Completed At" matches the user's local clock.
+	// Fall back to server time for older clients that don't send completedAt.
+	let completedAtValue: Date | FieldValue = FieldValue.serverTimestamp();
+	if (completedAt != null) {
+		const parsed =
+			completedAt instanceof Date ? completedAt : new Date(completedAt);
+		if (!Number.isNaN(parsed.getTime())) {
+			completedAtValue = parsed;
+		}
 	}
 
 	try {
@@ -48,7 +59,7 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 		await reportRef.update({
 			status: "complete",
 			gpsCoords: gpsCoords.trim(),
-			completedAt: FieldValue.serverTimestamp(),
+			completedAt: completedAtValue,
 			completedByUid: request.auth.uid,
 		});
 
@@ -60,7 +71,6 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 		const response = await postJobAttachments(reportData.simproId, {
 			Filename: fileName,
 			Base64Data: pdfReport,
-			Email: true,
 			Public: true,
 		});
 

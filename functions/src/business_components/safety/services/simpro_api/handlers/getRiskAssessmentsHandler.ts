@@ -1,5 +1,8 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { getFirestore } from "firebase-admin/firestore";
+import {
+	QueryDocumentSnapshot,
+	getFirestore,
+} from "firebase-admin/firestore";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
 
@@ -48,12 +51,17 @@ async function getRiskAssessments(createdBy: string) {
 		.orderBy("dateCreated", "desc")
 		.get();
 
+	const nameById = await resolveCreatorNames([
+		...progressReportsSnapshot.docs,
+		...completeReportsSnapshot.docs,
+	]);
+
 	const progressReports = progressReportsSnapshot.docs.map((doc) =>
-		serializeRiskAssessmentListItem(doc.id, doc.data())
+		serializeRiskAssessmentListItem(doc.id, doc.data(), nameById)
 	);
 
 	const completeReports = completeReportsSnapshot.docs.map((doc) =>
-		serializeRiskAssessmentListItem(doc.id, doc.data())
+		serializeRiskAssessmentListItem(doc.id, doc.data(), nameById)
 	);
 
 	return { progressReports, completeReports };
@@ -74,24 +82,61 @@ async function getAllRiskAssessments() {
 		.orderBy("dateCreated", "desc")
 		.get();
 
+	const nameById = await resolveCreatorNames([
+		...progressReportsSnapshot.docs,
+		...completeReportsSnapshot.docs,
+	]);
+
 	const progressReports = progressReportsSnapshot.docs.map((doc) =>
-		serializeRiskAssessmentListItem(doc.id, doc.data())
+		serializeRiskAssessmentListItem(doc.id, doc.data(), nameById)
 	);
 
 	const completeReports = completeReportsSnapshot.docs.map((doc) =>
-		serializeRiskAssessmentListItem(doc.id, doc.data())
+		serializeRiskAssessmentListItem(doc.id, doc.data(), nameById)
 	);
 
 	return { progressReports, completeReports };
 }
 
+async function resolveCreatorNames(
+	docs: QueryDocumentSnapshot[]
+): Promise<Map<string, string>> {
+	const db = getFirestore();
+	const creatorIds = [
+		...new Set(
+			docs
+				.map((doc) => String(doc.data()?.createdBy ?? "").trim())
+				.filter((id) => id.length > 0)
+		),
+	];
+
+	const nameById = new Map<string, string>();
+	await Promise.all(
+		creatorIds.map(async (creatorId) => {
+			try {
+				const snap = await db.collection("app_users").doc(creatorId).get();
+				const name = snap.exists ? String(snap.data()?.name ?? "").trim() : "";
+				if (name.length > 0) {
+					nameById.set(creatorId, name);
+				}
+			} catch {
+				// Keep going — display name falls back to completedBy / id.
+			}
+		})
+	);
+
+	return nameById;
+}
+
 function serializeRiskAssessmentListItem(
 	firebaseId: string,
-	data: Record<string, any>
+	data: Record<string, any>,
+	nameById: Map<string, string> = new Map()
 ) {
 	const dateCreated = data.dateCreated?.toDate
 		? data.dateCreated.toDate().toISOString()
 		: data.dateCreated;
+	const createdBy = String(data.createdBy ?? "").trim();
 
 	return {
 		firebaseId,
@@ -102,9 +147,12 @@ function serializeRiskAssessmentListItem(
 		customer: data.customer ?? "",
 		status: data.status ?? "",
 		dateCreated,
-		createdBy: data.createdBy ?? "",
+		createdBy,
 		createdByDisplayName:
-			data.createdByDisplayName ?? data.completedBy ?? "",
+			data.createdByDisplayName ||
+			data.completedBy ||
+			nameById.get(createdBy) ||
+			"",
 		completedBy: data.completedBy ?? "",
 	};
 }

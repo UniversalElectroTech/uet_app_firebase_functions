@@ -2,6 +2,7 @@ import { CallableRequest, onCall } from "firebase-functions/v2/https";
 import { createUserFromInviteHandler } from "../handlers/createUserFromInviteHandler";
 import { deleteUserHandler } from "../handlers/deleteUserHandler";
 import { deleteUserInviteHandler } from "../handlers/deleteUserInviteHandler";
+import { resetPasswordFromTokenHandler } from "../handlers/resetPasswordFromTokenHandler";
 import { firebaseFunctionsService } from "../../../firebase_functions/services/firebaseFunctionsService";
 
 // Creates a user using the invite token sent to them
@@ -10,6 +11,15 @@ exports.createUserFromInvite = onCall(
 	async (request: CallableRequest) => {
 		firebaseFunctionsService;
 		return await createUserFromInviteHandler(request);
+	}
+);
+
+// Resets a user's password using the reset token sent to them
+exports.resetPasswordFromToken = onCall(
+	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	async (request: CallableRequest) => {
+		firebaseFunctionsService;
+		return await resetPasswordFromTokenHandler(request);
 	}
 );
 

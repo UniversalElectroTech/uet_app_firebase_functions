@@ -7,11 +7,13 @@ import * as resendEmailEvents from "./global/services/resend_email_api/events/re
 import * as simproFolderCreationEvents from "./business_components/simpro_folder_creation/services/simpro_api/events/simproFolderCreationEvents";
 import * as vehicleLogsEvents from "./business_components/vehicle_logs/services/firebase_firestore/events/vehicleLogsEvents";
 import * as safetyReportSimproEvents from "./business_components/safety/services/simpro_api/events/safetyReportSimproEvents";
+import * as safetySwmsEvents from "./business_components/safety/services/firebase_firestore/events/safetySwmsEvents";
 
 exports.globalSimproEvents = globalSimproEvents;
 exports.rcdTestingSimproEvents = rcdTestingSimproEvents;
 exports.cctvReportSimproEvents = cctvReportSimproEvents;
 exports.safetyReportSimproEvents = safetyReportSimproEvents;
+exports.safetySwmsEvents = safetySwmsEvents;
 exports.googleMapsEvents = googleMapsEvents;
 exports.firebaseAuthEvents = firebaseAuthEvents;
 exports.resendEmailEvents = resendEmailEvents;

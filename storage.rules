@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Storage security rules — source of truth for uet-app-281cf.
+//
+// Deploy from this repo:
+//   firebase deploy --only storage
+//
+// Do NOT add a broad match /{allPaths=**} allow that overlaps SWMS —
+// Storage grants access if ANY matching rule allows it.
+//
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/app_users/$(request.auth.uid)).data.securityGroup == 'admin';
+    }
+
+    // SWMS PDF uploads — admin write, signed-in read, 20 MB max.
+    match /safety/swms/{docId}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin()
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
+    }
+
+    // Other app storage paths (RCD images, etc.) — signed-in only.
+    // Add tighter path-specific rules here over time.
+    match /rcd_test_jobs/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /sites/{allPaths=**} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

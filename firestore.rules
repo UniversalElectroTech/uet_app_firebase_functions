@@ -1,0 +1,111 @@
+rules_version = '2';
+
+// Firestore security rules — source of truth for uet-app-281cf.
+//
+// Deploy from this repo:
+//   firebase deploy --only firestore:rules
+//
+// IMPORTANT before the first rules deploy:
+// Deploying replaces whatever is currently in the Firebase Console.
+// If you already have custom console rules, open Console → Firestore → Rules,
+// copy any missing collection matches into the "Existing collections" section
+// below, then deploy.
+//
+// Do NOT add a broad match /{document=**} allow — it would override the
+// stricter SWMS rules below (Firestore grants access if ANY match allows it).
+//
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/app_users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/app_users/$(request.auth.uid))
+        && userDoc().data.securityGroup == 'admin';
+    }
+
+    // =====================================================================
+    // SWMS (signed documents + re-sign settings)
+    // =====================================================================
+
+    match /swms_documents/{docId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /swms_signatures/{signatureId} {
+      allow read: if isSignedIn();
+
+      // Employees may only create their own signature records.
+      allow create: if isSignedIn()
+        && request.resource.data.employeeId == request.auth.uid
+        && request.resource.data.keys().hasAll([
+          'documentId',
+          'employeeId',
+          'employeeName',
+          'signatureBase64',
+          'batchId'
+        ])
+        && request.resource.data.invalidatedAt == null;
+
+      // Admins may invalidate (force re-sign) but cannot rewrite signature data.
+      allow update: if isAdmin()
+        && request.resource.data.documentId == resource.data.documentId
+        && request.resource.data.employeeId == resource.data.employeeId
+        && request.resource.data.signatureBase64 == resource.data.signatureBase64
+        && request.resource.data.batchId == resource.data.batchId;
+
+      // Legal audit trail — never hard-delete.
+      allow delete: if false;
+    }
+
+    match /swms_settings/{settingsId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() && settingsId == 'resign';
+    }
+
+    // =====================================================================
+    // Existing collections (transitional auth gate)
+    // Add any other client-accessed collections here before deploy.
+    // Cloud Functions using the Admin SDK are not affected by these rules.
+    // =====================================================================
+
+    match /app_users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+    }
+
+    match /app_invites/{inviteId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /sites/{siteId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /rcd_test_jobs/{jobId} {
+      allow read, write: if isSignedIn();
+
+      match /distribution_boards/{boardId} {
+        allow read, write: if isSignedIn();
+
+        match /rcds/{rcdId} {
+          allow read, write: if isSignedIn();
+        }
+      }
+    }
+
+    // Risk assessments are primarily accessed via Cloud Functions (Admin SDK),
+    // but keep a signed-in client gate if any direct access remains.
+    match /risk_assessments/{assessmentId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

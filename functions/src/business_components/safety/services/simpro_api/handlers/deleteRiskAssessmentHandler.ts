@@ -36,15 +36,23 @@ async function deleteRiskAssessment(firebaseId: string, userId: string) {
 	const reportRef = db.collection("risk_assessments").doc(firebaseId);
 	const reportDoc = await reportRef.get();
 
+	const userIsAdmin = await isAdmin(userId);
 	const isOwner = reportDoc.exists && reportDoc.data()?.createdBy === userId;
-	if (!reportDoc.exists || (!isOwner && !(await isAdmin(userId)))) {
+	if (!reportDoc.exists || (!isOwner && !userIsAdmin)) {
 		throw new HttpsError(
 			"permission-denied",
 			"You do not have permission to delete this risk assessment."
 		);
 	}
 
-	if (reportDoc.data()?.status === "complete") {
+	const status = String(reportDoc.data()?.status ?? "").toLowerCase();
+	const isCompleted =
+		status === "complete" ||
+		status === "completed" ||
+		status === "submitted";
+
+	// Completed assessments stay locked for owners; admins may delete them.
+	if (isCompleted && !userIsAdmin) {
 		throw new HttpsError(
 			"failed-precondition",
 			"Completed risk assessments are locked and cannot be deleted."

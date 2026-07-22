@@ -62,6 +62,60 @@ async function ensureRiskAssessmentId(
 	return riskAssessmentId;
 }
 
+function hasJobMetadata(job: RiskAssessmentJob): boolean {
+	return (
+		job.name.trim().length > 0 &&
+		job.address.trim().length > 0 &&
+		job.customer.trim().length > 0
+	);
+}
+
+async function refreshFromSimproIfNeeded(
+	reportRef: DocumentReference,
+	riskAssessmentJob: RiskAssessmentJob
+): Promise<RiskAssessmentJob> {
+	// Resume drafts without hitting Simpro when core metadata is already stored.
+	if (
+		hasJobMetadata(riskAssessmentJob) &&
+		riskAssessmentJob.jobDescription.trim().length > 0
+	) {
+		return riskAssessmentJob;
+	}
+
+	const simproId = riskAssessmentJob.simproId;
+	const jobResponse = await getSimproJob(simproId);
+
+	let jobDescription = riskAssessmentJob.jobDescription;
+	if (!jobDescription.trim()) {
+		try {
+			const simproResponse = await simproApiService.get(
+				getJobDetailsRoute(simproId)
+			);
+			jobDescription = simproResponse.data["Description"]?.toString() ?? "";
+		} catch {
+			jobDescription = riskAssessmentJob.jobDescription;
+		}
+	}
+
+	const updatedJob = riskAssessmentJob.copyWith({
+		name: jobResponse.name,
+		address: jobResponse.getAddress(),
+		customer: jobResponse.customer,
+		simproId,
+		jobDescription,
+		firebaseId: riskAssessmentJob.firebaseId,
+	});
+
+	await reportRef.update({
+		name: updatedJob.name,
+		address: updatedJob.address,
+		customer: updatedJob.customer,
+		jobDescription: updatedJob.jobDescription,
+	});
+
+	return updatedJob;
+}
+
 async function getRiskAssessmentById(firebaseId: string, userId: string) {
 	const db = getFirestore();
 	const reportRef = db.collection("risk_assessments").doc(firebaseId);
@@ -72,10 +126,7 @@ async function getRiskAssessmentById(firebaseId: string, userId: string) {
 	}
 
 	const reportData = reportSnap.data() as Record<string, any>;
-	if (
-		reportData.createdBy !== userId &&
-		!(await isAdmin(userId))
-	) {
+	if (reportData.createdBy !== userId && !(await isAdmin(userId))) {
 		throw new HttpsError(
 			"permission-denied",
 			"You do not have permission to open this risk assessment."
@@ -94,33 +145,11 @@ async function getRiskAssessmentById(firebaseId: string, userId: string) {
 		return riskAssessmentJob.toFrontendMap();
 	}
 
-	const simproId = riskAssessmentJob.simproId;
-	const jobResponse = await getSimproJob(simproId);
-
-	let jobDescription = riskAssessmentJob.jobDescription;
-	if (!jobDescription) {
-		try {
-			const simproResponse = await simproApiService.get(
-				getJobDetailsRoute(simproId)
-			);
-			jobDescription = simproResponse.data["Description"]?.toString() ?? "";
-		} catch {
-			jobDescription = "";
-		}
-	}
-
-	const updatedJob = riskAssessmentJob.copyWith({
-		name: jobResponse.name,
-		address: jobResponse.getAddress(),
-		customer: jobResponse.customer,
-		simproId,
-		jobDescription,
-		firebaseId: reportSnap.id,
-	});
-
-	await reportRef.update(updatedJob.toFirebaseUpdateMap());
-
-	return updatedJob.toFrontendMap();
+	const refreshed = await refreshFromSimproIfNeeded(
+		reportRef,
+		riskAssessmentJob
+	);
+	return refreshed.toFrontendMap();
 }
 
 async function getOrCreateRiskAssessmentDetails(
@@ -134,13 +163,11 @@ async function getOrCreateRiskAssessmentDetails(
 		.where("createdBy", "==", userId)
 		.get();
 
-	// Prefer resuming an In Progress draft for this job.
 	const progressDoc = reportSnapshot.docs.find(
 		(doc) => doc.data()?.status === "progress"
 	);
 
 	if (!progressDoc) {
-		// No draft — always start a new assessment (even if submitted ones exist).
 		const created = await createRiskAssessment(simproId, userId);
 		return created.toFrontendMap();
 	}
@@ -156,40 +183,16 @@ async function getOrCreateRiskAssessmentDetails(
 		reportData
 	);
 
-	let riskAssessmentJob = RiskAssessmentJob.fromMap({
+	const riskAssessmentJob = RiskAssessmentJob.fromMap({
 		...reportData,
 		firebaseId: progressDoc.id,
 		riskAssessmentId,
 	});
 
-	const jobResponse = await getSimproJob(simproId);
+	const refreshed = await refreshFromSimproIfNeeded(
+		progressDoc.ref,
+		riskAssessmentJob
+	);
 
-	let jobDescription = riskAssessmentJob.jobDescription;
-	if (!jobDescription) {
-		try {
-			const simproResponse = await simproApiService.get(
-				getJobDetailsRoute(simproId)
-			);
-			jobDescription = simproResponse.data["Description"]?.toString() ?? "";
-		} catch {
-			jobDescription = "";
-		}
-	}
-
-	riskAssessmentJob = riskAssessmentJob.copyWith({
-		name: jobResponse.name,
-		address: jobResponse.getAddress(),
-		customer: jobResponse.customer,
-		simproId,
-		jobDescription,
-	});
-
-	await progressDoc.ref.update(riskAssessmentJob.toFirebaseUpdateMap());
-
-	riskAssessmentJob = riskAssessmentJob.copyWith({
-		firebaseId: progressDoc.id,
-	});
-
-	return riskAssessmentJob.toFrontendMap();
+	return refreshed.copyWith({ firebaseId: progressDoc.id }).toFrontendMap();
 }
-

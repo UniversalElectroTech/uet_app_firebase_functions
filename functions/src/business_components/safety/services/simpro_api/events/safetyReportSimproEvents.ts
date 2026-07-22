@@ -6,43 +6,56 @@ import { deleteRiskAssessmentHandler } from "../handlers/deleteRiskAssessmentHan
 import { completeRiskAssessmentHandler } from "../handlers/completeRiskAssessmentHandler";
 import { duplicateRiskAssessmentHandler } from "../handlers/duplicateRiskAssessmentHandler";
 
+const standardOpts = {
+	timeoutSeconds: 30,
+	maxInstances: 10,
+	enforceAppCheck: true,
+};
+
+const completeOpts = {
+	timeoutSeconds: 120,
+	memory: "512MiB" as const,
+	maxInstances: 20,
+	enforceAppCheck: true,
+};
+
 exports.getRiskAssessmentJobDetails = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	standardOpts,
 	async (request: CallableRequest) => {
 		return await getRiskAssessmentJobDetailsHandler(request);
 	}
 );
 
 exports.getRiskAssessments = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	standardOpts,
 	async (request: CallableRequest) => {
 		return await getRiskAssessmentsHandler(request);
 	}
 );
 
 exports.updateRiskAssessment = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	standardOpts,
 	async (request: CallableRequest) => {
 		return await updateRiskAssessmentHandler(request);
 	}
 );
 
 exports.deleteRiskAssessment = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	standardOpts,
 	async (request: CallableRequest) => {
 		return await deleteRiskAssessmentHandler(request);
 	}
 );
 
 exports.completeRiskAssessment = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	completeOpts,
 	async (request: CallableRequest) => {
 		return await completeRiskAssessmentHandler(request);
 	}
 );
 
 exports.duplicateRiskAssessment = onCall(
-	{ timeoutSeconds: 10, maxInstances: 1, enforceAppCheck: true },
+	standardOpts,
 	async (request: CallableRequest) => {
 		return await duplicateRiskAssessmentHandler(request);
 	}

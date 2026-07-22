@@ -1,7 +1,6 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
-import { getSimproJob } from "../../../../../global/services/simpro_api/handlers/getJobDetailsHandler";
 import { RiskAssessmentJob } from "../../../models/riskAssessmentJob";
 
 export async function updateRiskAssessmentHandler(request: CallableRequest) {
@@ -47,16 +46,10 @@ export async function updateRiskAssessment(riskAssessmentJob: any) {
 		);
 	}
 
-	let updatedJob = RiskAssessmentJob.fromMap(riskAssessmentJob);
-	const simproJob = await getSimproJob(riskAssessmentJob.simproId);
-
-	updatedJob = updatedJob.copyWith({
-		name: simproJob.name,
-		address: simproJob.getAddress(),
-		customer: simproJob.customer,
-	});
-
+	// Persist client payload as-is. Simpro metadata is refreshed on open/create,
+	// not on every debounced autosave (that doubled latency for every keystroke).
+	const updatedJob = RiskAssessmentJob.fromMap(riskAssessmentJob);
 	await reportRef.update(updatedJob.toFirebaseUpdateMap());
 
-	return updatedJob.toFrontendMap();
+	return { success: true };
 }

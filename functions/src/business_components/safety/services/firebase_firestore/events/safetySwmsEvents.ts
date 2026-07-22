@@ -20,7 +20,14 @@ const standardOpts = {
 const uploadOpts = {
 	timeoutSeconds: 120,
 	memory: "512MiB" as const,
-	maxInstances: 1,
+	maxInstances: 10,
+	enforceAppCheck: true,
+};
+
+const signOpts = {
+	timeoutSeconds: 60,
+	memory: "512MiB" as const,
+	maxInstances: 20,
 	enforceAppCheck: true,
 };
 
@@ -67,7 +74,7 @@ exports.softDeleteAllDocuments = onCall(
 );
 
 exports.submitSignatures = onCall(
-	uploadOpts,
+	signOpts,
 	async (request: CallableRequest) => {
 		return await submitSwmsSignaturesHandler(request);
 	}

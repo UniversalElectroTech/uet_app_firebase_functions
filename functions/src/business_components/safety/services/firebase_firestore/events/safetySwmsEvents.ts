@@ -12,8 +12,8 @@ import { submitSwmsSignaturesHandler } from "../handlers/submitSwmsSignaturesHan
 import { invalidateSwmsSignaturesHandler } from "../handlers/invalidateSwmsSignaturesHandler";
 
 const standardOpts = {
-	timeoutSeconds: 10,
-	maxInstances: 1,
+	timeoutSeconds: 30,
+	maxInstances: 10,
 	enforceAppCheck: true,
 };
 
@@ -31,13 +31,23 @@ const signOpts = {
 	enforceAppCheck: true,
 };
 
+const signatureReadOpts = {
+	timeoutSeconds: 60,
+	memory: "512MiB" as const,
+	maxInstances: 10,
+	enforceAppCheck: true,
+};
+
 exports.getDocuments = onCall(standardOpts, async (request: CallableRequest) => {
 	return await getSwmsDocumentsHandler(request);
 });
 
-exports.getSignatures = onCall(standardOpts, async (request: CallableRequest) => {
-	return await getSwmsSignaturesHandler(request);
-});
+exports.getSignatures = onCall(
+	signatureReadOpts,
+	async (request: CallableRequest) => {
+		return await getSwmsSignaturesHandler(request);
+	}
+);
 
 exports.getSettings = onCall(standardOpts, async (request: CallableRequest) => {
 	return await getSwmsSettingsHandler(request);

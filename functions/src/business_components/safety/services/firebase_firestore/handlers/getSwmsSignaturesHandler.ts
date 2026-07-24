@@ -16,6 +16,10 @@ export async function getSwmsSignaturesHandler(request: CallableRequest) {
 			typeof request.data?.documentId === "string"
 				? request.data.documentId.trim()
 				: "";
+		// List/status views only need metadata. Signature images are large and
+		// will exceed callable payload limits once many people have signed.
+		const includeSignatureImage =
+			request.data?.includeSignatureImage === true;
 
 		let query: Query = getFirestore().collection("swms_signatures");
 		if (documentId) {
@@ -23,9 +27,11 @@ export async function getSwmsSignaturesHandler(request: CallableRequest) {
 		}
 
 		const snapshot = await query.get();
-		const signatures = snapshot.docs.map((doc) =>
-			serializeSwmsSignature(doc.id, doc.data())
-		);
+		const signatures = snapshot.docs.map((doc) => {
+			const serialized = serializeSwmsSignature(doc.id, doc.data());
+			if (includeSignatureImage) return serialized;
+			return { ...serialized, signatureBase64: "" };
+		});
 
 		return { signatures };
 	} catch (error) {

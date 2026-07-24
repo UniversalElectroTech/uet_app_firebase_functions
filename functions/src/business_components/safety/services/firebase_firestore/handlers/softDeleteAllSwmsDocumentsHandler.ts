@@ -3,6 +3,14 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 
+const FIRESTORE_BATCH_LIMIT = 500;
+
+/** Legacy docs may omit status — treat missing as active (same as serialize). */
+function isEffectivelyActive(status: unknown): boolean {
+	if (status == null || status === "") return true;
+	return status === "active";
+}
+
 export async function softDeleteAllSwmsDocumentsHandler(
 	request: CallableRequest
 ) {
@@ -21,21 +29,28 @@ export async function softDeleteAllSwmsDocumentsHandler(
 			);
 		}
 
-		const snapshot = await getFirestore()
-			.collection("swms_documents")
-			.where("status", "==", "active")
-			.get();
+		// Do not query status=="active" only — that misses legacy docs with no status field.
+		const snapshot = await getFirestore().collection("swms_documents").get();
+		const toDelete = snapshot.docs.filter((doc) =>
+			isEffectivelyActive(doc.data()?.status)
+		);
 
-		const batch = getFirestore().batch();
-		for (const doc of snapshot.docs) {
-			batch.update(doc.ref, {
-				status: "deleted",
-				updatedAt: FieldValue.serverTimestamp(),
-			});
+		const db = getFirestore();
+		let deletedCount = 0;
+		for (let i = 0; i < toDelete.length; i += FIRESTORE_BATCH_LIMIT) {
+			const chunk = toDelete.slice(i, i + FIRESTORE_BATCH_LIMIT);
+			const batch = db.batch();
+			for (const doc of chunk) {
+				batch.update(doc.ref, {
+					status: "deleted",
+					updatedAt: FieldValue.serverTimestamp(),
+				});
+			}
+			await batch.commit();
+			deletedCount += chunk.length;
 		}
-		await batch.commit();
 
-		return { success: true, deletedCount: snapshot.size };
+		return { success: true, deletedCount };
 	} catch (error) {
 		return handleAxiosError(error);
 	}

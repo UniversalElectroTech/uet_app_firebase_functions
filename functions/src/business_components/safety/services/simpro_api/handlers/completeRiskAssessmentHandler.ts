@@ -3,6 +3,33 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 import { postJobAttachments } from "../../../../../global/services/simpro_api/handlers/postJobAttachmentsHandler";
 
+/** Builds `{RA#}_{Job#}_{ddmmyy}.pdf` for Simpro job attachments. */
+function buildRiskAssessmentPdfFileName({
+	riskAssessmentId,
+	jobNumber,
+	date,
+}: {
+	riskAssessmentId?: string;
+	jobNumber?: string;
+	date: Date;
+}): string {
+	const safe = (value: string) => value.replace(/[\/\\]/g, ",");
+	const raPart = safe(
+		typeof riskAssessmentId === "string" && riskAssessmentId.trim()
+			? riskAssessmentId.trim()
+			: "RA"
+	);
+	const jobPart = safe(
+		typeof jobNumber === "string" && jobNumber.trim()
+			? jobNumber.trim()
+			: "job"
+	);
+	const day = String(date.getDate()).padStart(2, "0");
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const year = String(date.getFullYear() % 100).padStart(2, "0");
+	return `${raPart}_${jobPart}_${day}${month}${year}.pdf`;
+}
+
 export async function completeRiskAssessmentHandler(request: CallableRequest) {
 	if (!request.auth) {
 		throw new HttpsError(
@@ -11,7 +38,8 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 		);
 	}
 
-	const { firebaseId, pdfReport, gpsCoords, completedAt } = request.data;
+	const { firebaseId, pdfReport, gpsCoords, completedAt, fileName: requestedFileName } =
+		request.data;
 
 	if (!firebaseId || !pdfReport) {
 		throw new HttpsError(
@@ -63,10 +91,19 @@ export async function completeRiskAssessmentHandler(request: CallableRequest) {
 			completedByUid: request.auth.uid,
 		});
 
-		const fileName = `${reportData.name.replace(
-			/[\/\\]/g,
-			","
-		)} - Risk Assessment.pdf`;
+		// Prefer client-provided name so ddmmyy matches the device local date.
+		// Fall back to server-built `{RA#}_{Job#}_{ddmmyy}.pdf` for older clients.
+		const fileName =
+			typeof requestedFileName === "string" && requestedFileName.trim()
+				? requestedFileName.trim().replace(/[\/\\]/g, ",")
+				: buildRiskAssessmentPdfFileName({
+						riskAssessmentId: reportData.riskAssessmentId,
+						jobNumber: reportData.simproId,
+						date:
+							completedAtValue instanceof Date
+								? completedAtValue
+								: new Date(),
+				  });
 
 		const response = await postJobAttachments(reportData.simproId, {
 			Filename: fileName,

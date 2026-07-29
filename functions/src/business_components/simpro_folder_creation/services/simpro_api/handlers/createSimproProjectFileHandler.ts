@@ -1,5 +1,4 @@
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { getStorage } from "firebase-admin/storage";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 import {
 	createSimproJobFileRoute,
@@ -8,7 +7,8 @@ import {
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
 
-const MAX_FILE_SIZE_BYTES = 80 * 1024 * 1024;
+// Firebase callable payloads max ~10 MB. Base64 expands ~4/3, so keep raw under 7 MB.
+const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 
 export async function createSimproProjectFileHandler(request: CallableRequest) {
 	try {
@@ -23,53 +23,36 @@ export async function createSimproProjectFileHandler(request: CallableRequest) {
 			simproId,
 			isQuote,
 			filename,
-			storagePath,
+			base64Data,
 			folderId,
 		}: {
 			simproId: string;
 			isQuote: boolean;
 			filename: string;
-			storagePath: string;
+			base64Data: string;
 			folderId?: number | null;
 		} = request.data;
 
-		if (!simproId || !filename || !storagePath) {
+		if (!simproId || !filename || !base64Data) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
 			);
 		}
 
-		const uid = request.auth.uid;
-		if (!storagePath.startsWith(`simpro_folder_creation/temp/${uid}/`)) {
-			throw new HttpsError(
-				"permission-denied",
-				"Invalid storage path for upload."
-			);
-		}
-
-		const file = getStorage().bucket().file(storagePath);
-		const [exists] = await file.exists();
-		if (!exists) {
-			throw new HttpsError("not-found", "Uploaded file was not found.");
-		}
-
-		const [metadata] = await file.getMetadata();
-		const size = Number(metadata.size ?? 0);
-		if (size > MAX_FILE_SIZE_BYTES) {
-			await file.delete({ ignoreNotFound: true });
+		const bytes = Buffer.from(base64Data, "base64");
+		if (bytes.length > MAX_FILE_SIZE_BYTES) {
 			throw new HttpsError(
 				"invalid-argument",
-				"File exceeds Simpro's 80 MB attachment limit."
+				"File exceeds the 7 MB transfer limit for uploads through the app."
 			);
 		}
 
 		// Admins upload private files; everyone else uploads public files.
-		const userIsAdmin = await isAdmin(uid);
-		const [bytes] = await file.download();
+		const userIsAdmin = await isAdmin(request.auth.uid);
 		const payload: Record<string, unknown> = {
 			Filename: filename,
-			Base64Data: bytes.toString("base64"),
+			Base64Data: base64Data,
 			Public: !userIsAdmin,
 			Email: false,
 		};
@@ -81,15 +64,11 @@ export async function createSimproProjectFileHandler(request: CallableRequest) {
 			? createSimproQuoteFileRoute(simproId)
 			: createSimproJobFileRoute(simproId);
 
-		try {
-			const response = await simproApiService.post(route, payload, {
-				maxBodyLength: Infinity,
-				maxContentLength: Infinity,
-			});
-			return response.data;
-		} finally {
-			await file.delete({ ignoreNotFound: true });
-		}
+		const response = await simproApiService.post(route, payload, {
+			maxBodyLength: Infinity,
+			maxContentLength: Infinity,
+		});
+		return response.data;
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}

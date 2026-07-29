@@ -1,6 +1,4 @@
-import { randomUUID } from "crypto";
 import { CallableRequest, HttpsError } from "firebase-functions/v2/https";
-import { getDownloadURL, getStorage } from "firebase-admin/storage";
 import { handleAxiosError } from "../../../../../global/services/helper_functions/errorHandling";
 import {
 	getSimproJobFileRoute,
@@ -8,6 +6,9 @@ import {
 } from "../config/routes";
 import { simproApiService } from "../../../../../global/services/simpro_api/simproApiService";
 import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
+
+// Firebase callable payloads max ~10 MB. Base64 expands ~4/3, so keep raw under 7 MB.
+const MAX_FILE_SIZE_BYTES = 7 * 1024 * 1024;
 
 export async function downloadSimproProjectFileHandler(
 	request: CallableRequest
@@ -61,27 +62,16 @@ export async function downloadSimproProjectFileHandler(
 		}
 
 		const bytes = Buffer.from(base64Data, "base64");
-		const uid = request.auth.uid;
-		const safeName = filename.replace(/[^\w.\-()+ ]+/g, "_");
-		const storagePath = `simpro_folder_creation/downloads/${uid}/${randomUUID()}_${safeName}`;
-		const file = getStorage().bucket().file(storagePath);
-
-		await file.save(bytes, {
-			metadata: {
-				contentType: data?.MimeType || "application/octet-stream",
-				metadata: {
-					originalFilename: filename,
-					expiresAt: String(Date.now() + 60 * 60 * 1000),
-				},
-			},
-		});
-
-		const downloadUrl = await getDownloadURL(file);
+		if (bytes.length > MAX_FILE_SIZE_BYTES) {
+			throw new HttpsError(
+				"invalid-argument",
+				"File exceeds the 7 MB transfer limit for downloads through the app. Open it in Simpro instead."
+			);
+		}
 
 		return {
 			filename,
-			downloadUrl,
-			storagePath,
+			base64Data,
 			mimeType: data?.MimeType ?? null,
 			fileSizeBytes: bytes.length,
 		};

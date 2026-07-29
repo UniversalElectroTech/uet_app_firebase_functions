@@ -1,5 +1,6 @@
 enum SecurityGroup {
 	admin = "admin",
+	warehouse = "warehouse",
 }
 
 enum EmployeeStatus {

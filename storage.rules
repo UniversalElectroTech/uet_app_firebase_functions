@@ -29,5 +29,19 @@ service firebase.storage {
     match /sites/{allPaths=**} {
       allow read, write: if isSignedIn();
     }
+
+    // Job Folder Creation — client uploads temp files, then Cloud Functions
+    // move them into Simpro. Downloads are written by Admin SDK.
+    match /simpro_folder_creation/temp/{userId}/{fileName} {
+      allow write: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.size < 80 * 1024 * 1024;
+      allow read, delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /simpro_folder_creation/downloads/{userId}/{fileName} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
   }
 }

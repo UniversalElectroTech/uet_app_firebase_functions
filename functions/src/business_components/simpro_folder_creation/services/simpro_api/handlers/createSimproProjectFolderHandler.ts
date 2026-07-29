@@ -21,8 +21,13 @@ export async function createSimproProjectFolderHandler(
 			simproId,
 			folderName,
 			isQuote,
-		}: { simproId: string; folderName: string; isQuote: boolean } =
-			request.data;
+			parentFolderId,
+		}: {
+			simproId: string;
+			folderName: string;
+			isQuote: boolean;
+			parentFolderId?: number | null;
+		} = request.data;
 
 		if (!simproId || !folderName) {
 			throw new HttpsError(
@@ -31,7 +36,12 @@ export async function createSimproProjectFolderHandler(
 			);
 		}
 
-		return await createSimproProjectFolder(simproId, folderName, isQuote);
+		return await createSimproProjectFolder(
+			simproId,
+			folderName,
+			isQuote,
+			parentFolderId ?? null
+		);
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}
@@ -40,21 +50,20 @@ export async function createSimproProjectFolderHandler(
 async function createSimproProjectFolder(
 	simproId: string,
 	folderName: string,
-	isQuote: boolean
+	isQuote: boolean,
+	parentFolderId: number | null
 ) {
-	var response;
-
-	if (isQuote) {
-		response = await simproApiService.post(
-			createQuoteAttachmentsRoute(simproId),
-			{ Name: folderName }
-		);
-	} else {
-		response = await simproApiService.post(
-			createSimproJobFolderRoute(simproId),
-			{ Name: folderName }
-		);
+	const payload: Record<string, unknown> = { Name: folderName };
+	if (parentFolderId != null) {
+		// Simpro accepts Parent (preferred) and still documents ParentID.
+		payload.Parent = parentFolderId;
+		payload.ParentID = parentFolderId;
 	}
 
+	const route = isQuote
+		? createQuoteAttachmentsRoute(simproId)
+		: createSimproJobFolderRoute(simproId);
+
+	const response = await simproApiService.post(route, payload);
 	return response.data;
 }

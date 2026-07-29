@@ -8,6 +8,7 @@ import * as simproFolderCreationEvents from "./business_components/simpro_folder
 import * as vehicleLogsEvents from "./business_components/vehicle_logs/services/firebase_firestore/events/vehicleLogsEvents";
 import * as safetyReportSimproEvents from "./business_components/safety/services/simpro_api/events/safetyReportSimproEvents";
 import * as safetySwmsEvents from "./business_components/safety/services/firebase_firestore/events/safetySwmsEvents";
+import * as partsReceivalSimproEvents from "./business_components/parts_receival/services/simpro_api/events/partsReceivalSimproEvents";
 
 exports.globalSimproEvents = globalSimproEvents;
 exports.rcdTestingSimproEvents = rcdTestingSimproEvents;
@@ -19,3 +20,4 @@ exports.firebaseAuthEvents = firebaseAuthEvents;
 exports.resendEmailEvents = resendEmailEvents;
 exports.simproFolderCreationEvents = simproFolderCreationEvents;
 exports.vehicleLogsEvents = vehicleLogsEvents;
+exports.partsReceivalSimproEvents = partsReceivalSimproEvents;

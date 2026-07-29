@@ -21,36 +21,47 @@ export async function updateSimproProjectFolderHandler(
 			simproId,
 			folderId,
 			newFolderName,
+			updatedFolderName,
+			parentFolderId,
 			isQuote,
 		}: {
 			simproId: string;
-			folderId: string;
-			newFolderName: string;
+			folderId: string | number;
+			newFolderName?: string;
+			updatedFolderName?: string;
+			parentFolderId?: number | null;
 			isQuote: boolean;
 		} = request.data;
 
-		if (!simproId || !folderId || !newFolderName) {
+		const folderName = (newFolderName ?? updatedFolderName)?.trim();
+		const hasParentUpdate = Object.prototype.hasOwnProperty.call(
+			request.data,
+			"parentFolderId"
+		);
+
+		if (!simproId || folderId == null || (!folderName && !hasParentUpdate)) {
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
 			);
 		}
 
-		var response;
-
-		if (isQuote) {
-			response = await simproApiService.patch(
-				updateSimproQuoteFolderNameRoute(simproId, folderId),
-				{ name: newFolderName }
-			);
-		} else {
-			response = await simproApiService.patch(
-				updateSimproJobFolderNameRoute(simproId, folderId),
-				{ name: newFolderName }
-			);
+		const payload: Record<string, unknown> = {};
+		if (folderName) {
+			payload.Name = folderName;
+		}
+		if (hasParentUpdate) {
+			// Prefer Parent; include ParentID for compatibility with older Simpro behaviour.
+			payload.Parent = parentFolderId ?? null;
+			payload.ParentID = parentFolderId ?? null;
 		}
 
-		return response.data;
+		const route = isQuote
+			? updateSimproQuoteFolderNameRoute(simproId, String(folderId))
+			: updateSimproJobFolderNameRoute(simproId, String(folderId));
+
+		const response = await simproApiService.patch(route, payload);
+		return response.data ?? { success: true };
 	} catch (error: any) {
 		return handleAxiosError(error);
 	}

@@ -1,0 +1,18 @@
+import { getFirestore } from "firebase-admin/firestore";
+import { HttpsError } from "firebase-functions/v2/https";
+
+export async function canAccessPartsReceival(
+	firebaseUserId: string
+): Promise<boolean> {
+	const docSnap = await getFirestore()
+		.collection("app_users")
+		.doc(firebaseUserId)
+		.get();
+
+	if (!docSnap.exists) {
+		throw new HttpsError("failed-precondition", "User document is missing.");
+	}
+
+	const securityGroup = docSnap.get("securityGroup");
+	return securityGroup === "admin" || securityGroup === "warehouse";
+}

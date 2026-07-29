@@ -4,8 +4,6 @@ import { handleAxiosError } from "../../../../../global/services/helper_function
 import {
 	deleteSimproJobFileRoute,
 	deleteSimproQuoteFileRoute,
-	getSimproJobFileRoute,
-	getSimproQuoteFileRoute,
 } from "../config/routes";
 import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
 
@@ -33,16 +31,10 @@ export async function deleteSimproProjectFileHandler(request: CallableRequest) {
 
 		const userIsAdmin = await isAdmin(request.auth.uid);
 		if (!userIsAdmin) {
-			const metaRoute = isQuote
-				? getSimproQuoteFileRoute(simproId, fileId)
-				: getSimproJobFileRoute(simproId, fileId);
-			const meta = await simproApiService.get(metaRoute);
-			if (meta.data?.Public !== true) {
-				throw new HttpsError(
-					"permission-denied",
-					"You do not have permission to delete this file."
-				);
-			}
+			throw new HttpsError(
+				"permission-denied",
+				"Only admins can delete files."
+			);
 		}
 
 		const route = isQuote

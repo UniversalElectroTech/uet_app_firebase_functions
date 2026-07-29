@@ -5,6 +5,7 @@ import {
 	deleteSimproJobFolderRoute,
 	deleteSimproQuoteFolderRoute,
 } from "../config/routes";
+import { isAdmin } from "../../../../../global/firebase_functions/isAdmin";
 
 export async function deleteSimproProjectFolderHandler(
 	request: CallableRequest
@@ -27,6 +28,14 @@ export async function deleteSimproProjectFolderHandler(
 			throw new HttpsError(
 				"failed-precondition",
 				"Required parameters are missing."
+			);
+		}
+
+		const userIsAdmin = await isAdmin(request.auth.uid);
+		if (!userIsAdmin) {
+			throw new HttpsError(
+				"permission-denied",
+				"Only admins can delete folders."
 			);
 		}
 
